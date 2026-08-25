@@ -185,6 +185,7 @@ class MainActivity : BaseAppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        com.movtery.redlauncherbeta.feature.theme.ThemeManager.applyTheme(this, com.movtery.redlauncherbeta.feature.theme.ThemeManager.ThemeStyle.LIQUID_GLASS)
         //处理外部导入
         val isImporting = handleImportIfNeeded(intent)
 
