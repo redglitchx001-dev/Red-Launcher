@@ -24,8 +24,8 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ZalithLauncher"
-include(":ZalithLauncher")
+rootProject.name = "RedLauncherBeta"
+include(":RedLauncherBeta")
 include(":LWJGL")
 include(":LWJGL:lwjgl-3.3.3")
 project(":LWJGL:lwjgl-3.3.3").projectDir = file("LWJGL/3.3.3")
