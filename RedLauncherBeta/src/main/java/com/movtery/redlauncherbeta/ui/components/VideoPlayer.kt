@@ -39,6 +39,8 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultRenderersFactory
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import com.movtery.zalithlauncher.setting.AllSettings
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
@@ -68,7 +70,11 @@ fun VideoPlayer(
         val renderersFactory = DefaultRenderersFactory(context)
             .setEnableDecoderFallback(true) //开启解码器 fallback
 
-        ExoPlayer.Builder(context, renderersFactory).build().apply {
+        val maxRes = AllSettings.videoBackgroundMaxResolution.state
+        val trackSelector = DefaultTrackSelector(context).apply {
+            setParameters(buildUponParameters().setMaxVideoSize(maxRes * 16 / 9, maxRes))
+        }
+        ExoPlayer.Builder(context, renderersFactory).setTrackSelector(trackSelector).build().apply {
             val audioAttr = AudioAttributes.Builder()
                 .setUsage(C.USAGE_MEDIA)
                 .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)

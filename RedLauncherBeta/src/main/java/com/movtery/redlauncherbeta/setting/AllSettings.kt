@@ -403,6 +403,11 @@ object AllSettings : SettingsRegistry() {
      */
     val backgroundBlurType = enumSetting("backgroundBlurType", BackgroundBlur.Background)
 
+
+    /**
+     * Video background max resolution
+     */
+    val videoBackgroundMaxResolution = intSetting("videoBackgroundMaxResolution", 1080, 360..2160)
     /**
      * 启动器主页类型
      */

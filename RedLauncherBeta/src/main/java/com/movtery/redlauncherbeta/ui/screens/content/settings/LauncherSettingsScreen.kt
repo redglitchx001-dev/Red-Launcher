@@ -287,6 +287,18 @@ fun LauncherSettingsScreen(
 
                         IntSliderSettingsCard(
                             modifier = Modifier.fillMaxWidth(),
+                            position = CardPosition.Middle,
+                            unit = AllSettings.videoBackgroundMaxResolution,
+                            title = "Video Max Resolution",
+                            summary = "Limit video background resolution (360p-4K)",
+                            valueRange = AllSettings.videoBackgroundMaxResolution.floatRange,
+                            suffix = "p",
+                            enabled = backgroundViewModel.isValid && backgroundViewModel.isVideo,
+                            fineTuningControl = true
+                        )
+
+                        IntSliderSettingsCard(
+                            modifier = Modifier.fillMaxWidth(),
                             position = CardPosition.Bottom,
                             unit = AllSettings.backgroundBlur,
                             title = stringResource(R.string.settings_title_blur),
