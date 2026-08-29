@@ -138,6 +138,5 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
     private fun initializeData() {
         AccountsManager.initialize(this)
         GamePathManager.initialize(this)
-        com.movtery.redlauncherbeta.feature.discord.DiscordManager.initialize(this)
     }
 }

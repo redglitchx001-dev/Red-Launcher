@@ -56,7 +56,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.nonInteractiveScrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -77,7 +76,6 @@ import com.movtery.colorpicker.ColorPickerController
 import com.movtery.colorpicker.components.HueBarPicker
 import com.movtery.colorpicker.rememberColorPickerController
 import com.movtery.zalithlauncher.R
-import com.movtery.redlauncherbeta.feature.discord.DiscordManager
 import com.movtery.zalithlauncher.contract.MediaPickerContract
 import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.coroutine.TaskSystem
@@ -301,7 +299,7 @@ fun LauncherSettingsScreen(
 
                         IntSliderSettingsCard(
                             modifier = Modifier.fillMaxWidth(),
-                            position = CardPosition.Middle,
+                            position = CardPosition.Bottom,
                             unit = AllSettings.backgroundBlur,
                             title = stringResource(R.string.settings_title_blur),
                             summary = stringResource(R.string.settings_launcher_background_blur_summary),
@@ -342,29 +340,7 @@ fun LauncherSettingsScreen(
                                 }
                             }
                         )
-
-                        SwitchSettingsCard(
-                            modifier = Modifier.fillMaxWidth(),
-                            position = CardPosition.Bottom,
-                            unit = AllSettings.liquidGlassEnabled,
-                            title = stringResource(R.string.settings_liquid_glass_title),
-                            summary = stringResource(R.string.settings_liquid_glass_summary)
-                        )
                     }
-                }
-            }
-
-            //Discord Rich Presence 板块
-            AnimatedItem(scope) { yOffset ->
-                SettingsCardColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
-                ) {
-                    DiscordSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Single
-                    )
                 }
             }
 
@@ -1062,92 +1038,6 @@ private fun BackgroundOperation(
                 backgroundViewModel.delete()
                 changeOperation(BackgroundOperation.None)
             }
-        }
-    }
-}
-
-/**
- * Discord Rich Presence 设置卡片
- */
-@Composable
-private fun DiscordSettingsCard(
-    modifier: Modifier = Modifier,
-    position: CardPosition = CardPosition.Single
-) {
-    val context = LocalContext.current
-    val discordState by DiscordManager.state.collectAsState()
-
-    SettingsCard(
-        modifier = modifier,
-        position = position
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(all = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.settings_discord_title),
-                style = MaterialTheme.typography.titleSmall
-            )
-
-            when (discordState) {
-                is DiscordManager.State.NotConfigured -> {
-                    Text(
-                        text = stringResource(R.string.settings_discord_not_configured),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-                is DiscordManager.State.Disconnected -> {
-                    Text(
-                        text = stringResource(R.string.settings_discord_disconnected),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-                is DiscordManager.State.Connected -> {
-                    Text(
-                        text = stringResource(
-                            R.string.settings_discord_connected,
-                            discordState.username
-                        ),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                if (discordState is DiscordManager.State.Connected) {
-                    FilledTonalButton(
-                        modifier = Modifier.weight(1f),
-                        onClick = {
-                            DiscordManager.disconnect()
-                        }
-                    ) {
-                        Text(text = stringResource(R.string.settings_discord_disconnect))
-                    }
-                } else {
-                    FilledTonalButton(
-                        modifier = Modifier.weight(1f),
-                        enabled = discordState !is DiscordManager.State.NotConfigured,
-                        onClick = {
-                            DiscordManager.startLogin(context)
-                        }
-                    ) {
-                        Text(text = stringResource(R.string.settings_discord_connect))
-                    }
-                }
-            }
-
-            Text(
-                text = stringResource(R.string.settings_discord_how_tip),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-            )
         }
     }
 }
