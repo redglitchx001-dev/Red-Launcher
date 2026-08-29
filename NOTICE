@@ -1,0 +1,32 @@
+Red Launcher Beta — NOTICE
+==========================
+
+Copyright (C) 2026 redglitchx001-dev ("RedGlitchX") and contributors — Red Launcher Beta
+
+Red Launcher Beta is a modified version ("fork") of Zalith Launcher 2, whose original
+copyright and license notices are preserved and must not be removed:
+
+  Zalith Launcher 2
+  Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+
+Both works are licensed under the GNU General Public License, version 3 (GPL-3.0).
+See the LICENSE file for the full text of the license.
+
+Additional attribution kept for the record (upstream projects referenced by the code):
+  - PojavLauncher (LGPL-3.0) — launch backend
+  - PCL2, FCL, HMCL — implementation references
+  - MCMod / mcmod.cn, mcim — translation and metadata sources
+
+Meaning of the headers you will find in the source tree:
+  - "Red Launcher Beta / Copyright (C) 2026 redglitchx001-dev" marks files written for
+    this fork.
+  - "Zalith Launcher 2 / Copyright (C) 2025 MovTery ... and contributors" marks files
+    derived from upstream. Under GPLv3 these notices are legal notices and MUST be kept.
+
+Pursuant to Section 7 of GPLv3, Red Launcher Beta is hereby marked as an unofficial
+modified version of Zalith Launcher 2. The Red Launcher Beta name, logo and "Liquid Glass"
+red theme are not affiliated with and not endorsed by the upstream project.
+
+No warranty: this program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+PURPOSE.

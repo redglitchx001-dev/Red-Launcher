@@ -105,7 +105,8 @@ fun AboutInfoScreen(
                         ButtonIconItem(
                             icon = painterResource(R.drawable.img_launcher),
                             title = BuildKeys.LAUNCHER_NAME,
-                            text = stringResource(R.string.about_launcher_version, BuildConfig.VERSION_NAME),
+                            text = stringResource(R.string.about_launcher_version, BuildConfig.VERSION_NAME) +
+                                "\n" + stringResource(R.string.about_launcher_copyright),
                             button = {
                                 Button(
                                     onClick = checkUpdate
@@ -121,9 +122,25 @@ fun AboutInfoScreen(
                         )
 
                         ButtonIconItem(
+                            icon = painterResource(R.drawable.img_launcher),
+                            title = stringResource(R.string.about_launcher_author_redglitchx_title),
+                            text = stringResource(
+                                R.string.about_launcher_author_redglitchx_text,
+                                BuildKeys.LAUNCHER_NAME
+                            ),
+                            button = {
+                                Button(
+                                    onClick = { openLink(URL_PROJECT) }
+                                ) {
+                                    Text(text = stringResource(R.string.about_launcher_project_link))
+                                }
+                            }
+                        )
+
+                        ButtonIconItem(
                             icon = painterResource(R.drawable.img_avatar_movtery),
                             title = stringResource(R.string.about_launcher_author_movtery_title),
-                            text = stringResource(R.string.about_launcher_author_movtery_text, BuildKeys.LAUNCHER_NAME),
+                            text = stringResource(R.string.about_launcher_author_movtery_upstream),
                             button = {
                                 Button(
                                     onClick = { openLink(URL_SUPPORT) }
@@ -131,6 +148,12 @@ fun AboutInfoScreen(
                                     Text(text = stringResource(R.string.about_sponsor))
                                 }
                             }
+                        )
+
+                        Text(
+                            modifier = Modifier.alpha(0.7f),
+                            text = stringResource(R.string.about_launcher_gpl_notice),
+                            style = MaterialTheme.typography.bodySmall
                         )
                     }
                 }
