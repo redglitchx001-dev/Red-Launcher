@@ -340,6 +340,14 @@ fun LauncherSettingsScreen(
                                 }
                             }
                         )
+
+                        SwitchSettingsCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            position = CardPosition.Bottom,
+                            unit = AllSettings.liquidGlassEnabled,
+                            title = stringResource(R.string.settings_liquid_glass_title),
+                            summary = stringResource(R.string.settings_liquid_glass_summary)
+                        )
                     }
                 }
             }
