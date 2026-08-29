@@ -34,9 +34,8 @@ A custom Android launcher for **Minecraft: Java Edition**
 
 ## 📜 License
 
-This project is licensed under the **[GPL-3.0 license](LICENSE)**.
-
-Copyright © 2026 **RedGlitchX** — Red Launcher Beta.
+Red Launcher Beta is © 2026 **RedGlitchX** and contributors, licensed under the
+**[GPL-3.0 license](LICENSE)**. See **[NOTICE](NOTICE)** for the full copyright picture.
 
 Red Launcher Beta is an **unofficial modified version** of [ZalithLauncher2](https://github.com/ZalithLauncher/ZalithLauncher2).
 Pursuant to Section 7 of the GPLv3, modified versions must clearly indicate that they are unofficial modified
