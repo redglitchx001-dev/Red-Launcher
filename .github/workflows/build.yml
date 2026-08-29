@@ -71,9 +71,50 @@ jobs:
           path: RedLauncherBeta/build/outputs/mapping/release/mapping.txt
 
       - name: Upload Debug APK for ${{ matrix.arch }}
-        if: inputs.variant == 'Debug'
+        # Only arm64 is uploaded for Debug builds to stay within the free
+        # GitHub Actions artifact storage quota (500 MB). Other architectures
+        # are still built; restore this for all archs if you upgrade the plan.
+        if: inputs.variant == 'Debug' && matrix.arch == 'arm64'
         continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
-          name: debug apk (${{ matrix.arch }})
+          name: debug apk (arm64)
           path: RedLauncherBeta/build/outputs/apk/debug/*.apk
+
+      - name: Clean up old artifacts (keep 2 latest runs)
+        # The runner token can delete artifacts, so storage cannot grow
+        # unbounded. Runs only once per execution (on the 'all' job).
+        if: inputs.variant == 'Debug' && matrix.arch == 'all'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 - <<'PYEOF'
+          import json, os, urllib.request
+
+          token = os.environ["GH_TOKEN"]
+          repo = os.environ["GITHUB_REPOSITORY"]
+          base = f"https://api.github.com/repos/{repo}"
+
+          def req(method, url):
+              r = urllib.request.Request(
+                  url, method=method,
+                  headers={"Authorization": f"Bearer {token}",
+                           "Accept": "application/vnd.github+json"})
+              with urllib.request.urlopen(r) as resp:
+                  body = resp.read()
+                  return json.loads(body) if body else {}
+
+          runs = req("GET", f"{base}/actions/runs?per_page=15")["workflow_runs"]
+          keep = {r["id"] for r in runs[:2]}
+          deleted = 0
+          for run in runs:
+              if run["id"] in keep:
+                  continue
+              arts = req("GET", f"{base}/actions/runs/{run['id']}/artifacts?per_page=100").get("artifacts", [])
+              for a in arts:
+                  req("DELETE", f"{base}/actions/artifacts/{a['id']}")
+                  deleted += 1
+          print(f"Deleted {deleted} old artifact(s); kept runs: {sorted(keep)}")
+          PYEOF
+          
