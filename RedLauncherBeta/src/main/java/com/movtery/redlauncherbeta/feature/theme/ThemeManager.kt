@@ -23,7 +23,7 @@ object ThemeManager {
     }
 
     /** Liquid Glass 窗口背景色：暗红色调 */
-    private const val GLASS_WINDOW_BACKGROUND = 0xFF14090B
+    private val GLASS_WINDOW_BACKGROUND: Int = 0xFF14090B.toInt()
 
     fun isLiquidGlassEnabled(): Boolean = AllSettings.liquidGlassEnabled.getValue()
 
