@@ -39,7 +39,7 @@ jobs:
           chmod +x gradlew
           ./gradlew RedLauncherBeta:assemble${{ inputs.variant }} -Darch=arm64
 
-      - name: Publish APK as GitHub Release (apk-latest)
+      - name: "Publish APK as GitHub Release (apk-latest)"
         if: inputs.variant == 'Debug'
         run: |
           APK=$(ls RedLauncherBeta/build/outputs/apk/debug/*.apk | head -1)
@@ -48,22 +48,22 @@ jobs:
           SIZE=$(du -h "$OUT" | cut -f1)
           TAG="apk-latest"
           if ! gh release view "$TAG" >/dev/null 2>&1; then
-            gh release create "$TAG" --title "Red Launcher Beta — latest APK" \
+            gh release create "$TAG" --title "Red Launcher Beta - latest APK" \
               --notes "Latest Debug APK (arm64). Re-uploaded on every build."
           fi
           gh release upload "$TAG" "$OUT" --clobber
           URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/RedLauncherBeta-Debug-arm64.apk"
-          echo "### ✅ Red Launcher Beta APK ($SIZE)" >> "$GITHUB_STEP_SUMMARY"
+          echo "### OK Red Launcher Beta APK ($SIZE)" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "**Download (permanent link):** $URL" >> "$GITHUB_STEP_SUMMARY"
           echo "Open it on your phone and install." >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Fallback: upload to temp file host
+      - name: "Fallback: upload to temp file host"
         if: inputs.variant == 'Debug' && failure()
         run: |
           APK=$(ls RedLauncherBeta/build/outputs/apk/debug/*.apk | head -1)
           SIZE=$(du -h "$APK" | cut -f1)
-          echo "GitHub Release failed — trying temp hosts..." >> "$GITHUB_STEP_SUMMARY"
+          echo "GitHub Release failed - trying temp hosts..." >> "$GITHUB_STEP_SUMMARY"
 
           RESP=$(curl -s -m 600 -F "file=@$APK" https://tmpfiles.org/api/v1/upload)
           URL=$(echo "$RESP" | grep -o 'https://tmpfiles.org/[0-9]*/[^"]*' | head -1)
@@ -93,13 +93,13 @@ jobs:
           fi
 
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "**❌ All upload targets failed.** Check the logs." >> "$GITHUB_STEP_SUMMARY"
+          echo "**All upload targets failed. Check the logs.**" >> "$GITHUB_STEP_SUMMARY"
           exit 1
 
-      - name: Also upload as GitHub artifact (when quota allows)
+      - name: "Also upload as GitHub artifact (when quota allows)"
         if: inputs.variant == 'Debug'
         continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
-          name: debug apk (arm64)
+          name: "debug apk (arm64)"
           path: RedLauncherBeta/build/outputs/apk/debug/*.apk
