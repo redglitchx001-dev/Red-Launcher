@@ -408,6 +408,18 @@ object AllSettings : SettingsRegistry() {
      * Video background max resolution
      */
     val videoBackgroundMaxResolution = intSetting("videoBackgroundMaxResolution", 1080, 360..2160)
+
+    /**
+     * Liquid Glass 主题风格：
+     * 卡片使用半透明磨砂玻璃颜色 + 玻璃描边，并保证最低背景模糊度
+     */
+    val liquidGlassEnabled = boolSetting("liquidGlassEnabled", false)
+
+    /**
+     * Discord Rich Presence 大图标（Discord 应用资源 key 或 Discord CDN URL）
+     */
+    val discordLargeImage = stringSetting("discordLargeImage", "red_launcher")
+
     /**
      * 启动器主页类型
      */

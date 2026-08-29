@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.UiComposable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
 import com.movtery.zalithlauncher.ui.theme.cardColor
@@ -62,7 +63,7 @@ fun BackgroundCard(
         shape = shape,
         colors = colors,
         elevation = elevation,
-        border = border,
+        border = border ?: (if (AllSettings.liquidGlassEnabled.state) GlassBorder else null),
     ) {
         Column(
             modifier = Modifier.backgroundGlass(blur, colors.containerColor, influencedByBackground),
@@ -70,6 +71,11 @@ fun BackgroundCard(
         )
     }
 }
+
+/**
+ * Liquid Glass 模式的卡片描边：细玻璃边缘
+ */
+private val GlassBorder: BorderStroke = BorderStroke(1.dp, Color.White.copy(alpha = 0.14f))
 
 /**
  * 背景卡片组件，
@@ -97,7 +103,7 @@ fun BackgroundCard(
         shape = shape,
         colors = colors,
         elevation = elevation,
-        border = border,
+        border = border ?: (if (AllSettings.liquidGlassEnabled.state) GlassBorder else null),
         onClick = onClick,
         enabled = enabled,
     ) {

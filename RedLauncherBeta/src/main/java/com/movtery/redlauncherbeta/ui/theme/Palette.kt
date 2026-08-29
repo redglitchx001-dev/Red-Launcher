@@ -23,6 +23,7 @@ import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.enums.isLauncherInDarkTheme
 import com.movtery.zalithlauncher.ui.components.influencedByBackgroundColor
 
@@ -42,10 +43,17 @@ fun onBackgroundColor(): Color = MaterialTheme.colorScheme.onSurfaceVariant
 @Composable
 fun cardColor(
     influencedByBackground: Boolean = true
-): Color = influencedByBackgroundColor(
-    color = MaterialTheme.colorScheme.surfaceBright,
-    enabled = influencedByBackground
-)
+): Color {
+    // Liquid Glass 模式：磨砂玻璃卡片，固定使用更通透的半透明颜色
+    if (AllSettings.liquidGlassEnabled.state && influencedByBackground) {
+        val opacity = AllSettings.launcherBackgroundOpacity.state / 100f
+        return MaterialTheme.colorScheme.surfaceBright.copy(alpha = opacity.coerceIn(0.35f, 0.6f))
+    }
+    return influencedByBackgroundColor(
+        color = MaterialTheme.colorScheme.surfaceBright,
+        enabled = influencedByBackground
+    )
+}
 @Composable
 fun onCardColor(): Color = MaterialTheme.colorScheme.onSurface
 /**
@@ -65,6 +73,15 @@ fun itemColor(
     influencedByBackground: Boolean = true,
     isDark: Boolean = isLauncherInDarkTheme()
 ): Color {
+    // Liquid Glass 模式：项目条目同样使用半透明颜色
+    if (AllSettings.liquidGlassEnabled.state && influencedByBackground) {
+        val base = if (isDark) {
+            MaterialTheme.colorScheme.surfaceVariant
+        } else {
+            MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
+        }
+        return base.copy(alpha = 0.5f)
+    }
     return influencedByBackgroundColor(
         color = if (isDark) {
             MaterialTheme.colorScheme.surfaceVariant
