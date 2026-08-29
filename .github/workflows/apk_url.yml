@@ -39,22 +39,62 @@ jobs:
           chmod +x gradlew
           ./gradlew RedLauncherBeta:assemble${{ inputs.variant }} -Darch=arm64
 
-      - name: Upload APK to 0x0.st
+      - name: Publish APK as GitHub Release (apk-latest)
         if: inputs.variant == 'Debug'
         run: |
           APK=$(ls RedLauncherBeta/build/outputs/apk/debug/*.apk | head -1)
-          SIZE=$(du -h "$APK" | cut -f1)
-          echo "Uploading $APK ($SIZE) to 0x0.st ..."
-          URL=$(curl -s -F "file=@$APK" https://0x0.st)
-          if [[ "$URL" == http* ]]; then
-            echo "### ✅ Red Launcher Beta APK ($SIZE)" >> "$GITHUB_STEP_SUMMARY"
-            echo "" >> "$GITHUB_STEP_SUMMARY"
-            echo "**Download:** $URL" >> "$GITHUB_STEP_SUMMARY"
-            echo "Link valid several days — install it on your phone." >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo "0x0.st upload failed: $URL"
-            exit 1
+          OUT=RedLauncherBeta/build/outputs/apk/debug/RedLauncherBeta-Debug-arm64.apk
+          cp "$APK" "$OUT"
+          SIZE=$(du -h "$OUT" | cut -f1)
+          TAG="apk-latest"
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --title "Red Launcher Beta — latest APK" \
+              --notes "Latest Debug APK (arm64). Re-uploaded on every build."
           fi
+          gh release upload "$TAG" "$OUT" --clobber
+          URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/RedLauncherBeta-Debug-arm64.apk"
+          echo "### ✅ Red Launcher Beta APK ($SIZE)" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Download (permanent link):** $URL" >> "$GITHUB_STEP_SUMMARY"
+          echo "Open it on your phone and install." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fallback: upload to temp file host
+        if: inputs.variant == 'Debug' && failure()
+        run: |
+          APK=$(ls RedLauncherBeta/build/outputs/apk/debug/*.apk | head -1)
+          SIZE=$(du -h "$APK" | cut -f1)
+          echo "GitHub Release failed — trying temp hosts..." >> "$GITHUB_STEP_SUMMARY"
+
+          RESP=$(curl -s -m 600 -F "file=@$APK" https://tmpfiles.org/api/v1/upload)
+          URL=$(echo "$RESP" | grep -o 'https://tmpfiles.org/[0-9]*/[^"]*' | head -1)
+          if [ -n "$URL" ]; then
+            DIRECT=$(echo "$URL" | sed 's|/tmpfiles.org/|/tmpfiles.org/dl/|')
+            echo "tmpfiles.org link: $DIRECT"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "**Download (valid 60 days):** $DIRECT" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          ID=$(curl -s -m 600 -T "$APK" https://pixeldrain.com/api/file/ | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
+          if [ -n "$ID" ]; then
+            DIRECT="https://pixeldrain.com/api/file/$ID?download"
+            echo "pixeldrain link: $DIRECT"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "**Download:** $DIRECT" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          DIRECT=$(curl -s -m 600 -T "$APK" https://bashupload.com | grep -o 'https://bashupload.com/[^ ]*' | head -1)
+          if [ -n "$DIRECT" ]; then
+            echo "bashupload link: $DIRECT"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "**Download (valid 3 days):** $DIRECT" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**❌ All upload targets failed.** Check the logs." >> "$GITHUB_STEP_SUMMARY"
+          exit 1
 
       - name: Also upload as GitHub artifact (when quota allows)
         if: inputs.variant == 'Debug'
