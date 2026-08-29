@@ -1,31 +1,49 @@
-import java.io.BufferedWriter
-import java.io.File
-import java.io.FileWriter
-import java.io.OutputStream
-import java.io.PrintStream
-
-// --- CI DEBUG (temporary, remove after diagnosis): tee full build console to ci-debug/console.log ---
-val ciDebugWs = System.getenv("GITHUB_WORKSPACE")
-if (ciDebugWs != null) {
-    try {
-        val origOut = System.out
-        val origErr = System.err
-        val debugDir = File(ciDebugWs, "ci-debug")
-        debugDir.mkdirs()
-        val outStream = PrintStream(BufferedWriter(FileWriter(File(debugDir, "console.log")), Charsets.UTF_8), true)
-        val errStream = PrintStream(BufferedWriter(FileWriter(File(debugDir, "console-err.log")), Charsets.UTF_8), true)
-        System.setOut(PrintStream(object : OutputStream() {
-            override fun write(b: Int) { origOut.write(b); outStream.write(b) }
-            override fun write(b: ByteArray, off: Int, len: Int) { origOut.write(b, off, len); outStream.write(b, off, len) }
-        }, true, Charsets.UTF_8))
-        System.setErr(PrintStream(object : OutputStream() {
-            override fun write(b: Int) { origErr.write(b); errStream.write(b) }
-            override fun write(b: ByteArray, off: Int, len: Int) { origErr.write(b, off, len); errStream.write(b, off, len) }
-        }, true, Charsets.UTF_8))
-    } catch (_: Throwable) {
+// --- CI DEBUG (temporary, REMOVE AFTER DIAGNOSIS): on any build failure, push error details to ci-debug-log branch
+gradle.buildFinished { result ->
+    val ciFailure = result.failure
+    if (ciFailure != null) {
+        try {
+            val ciWs = System.getenv("GITHUB_WORKSPACE") ?: ""
+            if (ciWs.isNotEmpty()) {
+                val ciConsole = File(ciWs, "ci-debug/console.log")
+                val ciTail = if (ciConsole.exists()) {
+                    ciConsole.readLines().takeLast(300).joinToString("\n")
+                } else {
+                    "no console captured"
+                }
+                val ciChain = buildString {
+                    var ciT: Throwable? = ciFailure
+                    var ciD = 0
+                    while (ciT != null && ciD < 6) {
+                        val ciCur = ciT
+                        append(ciCur).append("\n")
+                        ciCur.stackTrace.take(25).forEach { append("  at ").append(it).append("\n") }
+                        ciT = ciCur.cause
+                        ciD++
+                    }
+                }.take(20000)
+                File(ciWs, "ci-debug/error.txt").writeText(
+                    "FAILURE MESSAGE: " + (ciFailure.message ?: "unknown") + "\n\n" + ciChain +
+                        "\n\nCONSOLE TAIL (last 300 lines):\n" + ciTail
+                )
+                val ciSafeMsg = (ciFailure.message ?: "unknown").replace(Regex("[^a-zA-Z0-9 :.]"), "_").take(100)
+                val ciP = ProcessBuilder(
+                    "bash", "-lc",
+                    "cd '" + ciWs + "' && git config user.email ci-debug@local && git config user.name 'CI Debug' && git add -f ci-debug/error.txt && git commit -m 'CI-ERROR: " + ciSafeMsg + "' && git push -f origin HEAD:refs/heads/ci-debug-log 2>&1 | tail -5"
+                ).redirectErrorStream(true).start()
+                ciP.waitFor(120, java.util.concurrent.TimeUnit.SECONDS)
+                val ciOut = ciP.inputStream.bufferedReader().readText()
+                System.err.println("=== CI-DEBUG-PUSH ===\n" + ciOut)
+            }
+        } catch (ciT: Throwable) {
+            System.err.println("ci-debug hook failed: " + ciT)
+        }
     }
 }
-// --- END CI DEBUG ---
+// --- END CI DEBUG (hook) ---
+// --- CI DEBUG (temporary): capture full build console; removed after diagnosis
+apply(from = "ci-debug-setup.kts")
+// --- END CI DEBUG (console capture) ---
 
 pluginManagement {
     repositories {
