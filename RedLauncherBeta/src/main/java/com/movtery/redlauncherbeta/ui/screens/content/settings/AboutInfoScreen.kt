@@ -140,7 +140,7 @@ fun AboutInfoScreen(
                         ButtonIconItem(
                             icon = painterResource(R.drawable.img_avatar_movtery),
                             title = stringResource(R.string.about_launcher_author_movtery_title),
-                            text = stringResource(R.string.about_launcher_author_movtery_text),
+                            text = stringResource(R.string.about_launcher_author_movtery_upstream),
                             button = {
                                 Button(
                                     onClick = { openLink(URL_SUPPORT) }

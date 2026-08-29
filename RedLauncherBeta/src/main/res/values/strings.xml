@@ -1230,7 +1230,8 @@
     <string name="about_launcher_version">Launcher Version: %s</string>
     <string name="about_launcher_copyright">© 2026 RedGlitchX — Red Launcher Beta</string>
     <string name="about_launcher_author_movtery_title">MovTery</string>
-    <string name="about_launcher_author_movtery_text">Author of upstream ZalithLauncher2</string>
+    <string name="about_launcher_author_movtery_text">Author of %s</string>
+    <string name="about_launcher_author_movtery_upstream">Upstream author of ZalithLauncher2 (GPL-3.0)</string>
     <string name="about_launcher_author_redglitchx_title">RedGlitchX</string>
     <string name="about_launcher_author_redglitchx_text">Maintainer of %s (unofficial fork)</string>
     <string name="about_launcher_gpl_notice">This program comes with ABSOLUTELY NO WARRANTY. It is free software, and you may redistribute it under GPLv3, with upstream copyright notices preserved.</string>
