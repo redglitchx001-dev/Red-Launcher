@@ -1091,33 +1091,6 @@ private fun DiscordSettingsCard(
                 style = MaterialTheme.typography.titleSmall
             )
 
-            when (discordState) {
-                is DiscordManager.State.NotConfigured -> {
-                    Text(
-                        text = stringResource(R.string.settings_discord_not_configured),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-                is DiscordManager.State.Disconnected -> {
-                    Text(
-                        text = stringResource(R.string.settings_discord_disconnected),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-                is DiscordManager.State.Connected -> {
-                    Text(
-                        text = stringResource(
-                            R.string.settings_discord_connected,
-                            discordState.username
-                        ),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-
-            }
-
             Text(
                 text = stringResource(R.string.settings_discord_how_tip),
                 style = MaterialTheme.typography.labelSmall,
