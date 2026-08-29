@@ -56,6 +56,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.nonInteractiveScrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -349,6 +350,20 @@ fun LauncherSettingsScreen(
                             summary = stringResource(R.string.settings_liquid_glass_summary)
                         )
                     }
+                }
+            }
+
+            //Discord Rich Presence 板块
+            AnimatedItem(scope) { yOffset ->
+                SettingsCardColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
+                ) {
+                    DiscordSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Single
+                    )
                 }
             }
 
@@ -1047,5 +1062,23 @@ private fun BackgroundOperation(
                 changeOperation(BackgroundOperation.None)
             }
         }
+    }
+}
+/**
+ * Discord Rich Presence 设置卡片（BISect 12b: minimal body）
+ */
+@Composable
+private fun DiscordSettingsCard(
+    modifier: Modifier = Modifier,
+    position: CardPosition = CardPosition.Single
+) {
+    SettingsCard(
+        modifier = modifier,
+        position = position
+    ) {
+        Text(
+            text = stringResource(R.string.settings_discord_title),
+            style = MaterialTheme.typography.titleSmall
+        )
     }
 }
