@@ -1116,30 +1116,6 @@ private fun DiscordSettingsCard(
                 }
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                if (discordState is DiscordManager.State.Connected) {
-                    FilledTonalButton(
-                        modifier = Modifier.weight(1f),
-                        onClick = {
-                            DiscordManager.disconnect()
-                        }
-                    ) {
-                        Text(text = stringResource(R.string.settings_discord_disconnect))
-                    }
-                } else {
-                    FilledTonalButton(
-                        modifier = Modifier.weight(1f),
-                        enabled = discordState !is DiscordManager.State.NotConfigured,
-                        onClick = {
-                            DiscordManager.startLogin(context)
-                        }
-                    ) {
-                        Text(text = stringResource(R.string.settings_discord_connect))
-                    }
-                }
             }
 
             Text(
