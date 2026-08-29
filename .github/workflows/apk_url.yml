@@ -1,1 +1,65 @@
+name: APK URL
 
+on:
+  workflow_dispatch:
+    inputs:
+      variant:
+        description: "Build variant"
+        required: true
+        type: choice
+        default: "Debug"
+        options:
+          - Debug
+          - Release
+
+jobs:
+  build:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    env:
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+      OAUTH_CLIENT_ID: ${{ secrets.OAUTH_CLIENT_ID }}
+      CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Build APK (arm64)
+        run: |
+          chmod +x gradlew
+          ./gradlew RedLauncherBeta:assemble${{ inputs.variant }} -Darch=arm64
+
+      - name: Upload APK to 0x0.st
+        if: inputs.variant == 'Debug'
+        run: |
+          APK=$(ls RedLauncherBeta/build/outputs/apk/debug/*.apk | head -1)
+          SIZE=$(du -h "$APK" | cut -f1)
+          echo "Uploading $APK ($SIZE) to 0x0.st ..."
+          URL=$(curl -s -F "file=@$APK" https://0x0.st)
+          if [[ "$URL" == http* ]]; then
+            echo "### ✅ Red Launcher Beta APK ($SIZE)" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "**Download:** $URL" >> "$GITHUB_STEP_SUMMARY"
+            echo "Link valid several days — install it on your phone." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "0x0.st upload failed: $URL"
+            exit 1
+          fi
+
+      - name: Also upload as GitHub artifact (when quota allows)
+        if: inputs.variant == 'Debug'
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: debug apk (arm64)
+          path: RedLauncherBeta/build/outputs/apk/debug/*.apk
