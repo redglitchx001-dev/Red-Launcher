@@ -1,0 +1,451 @@
+================================================================================
+ULTRA-BIBLE PROMPT — "RED LAUNCHER BETA" — COMPLETE TECHNICAL SPECIFICATION
+================================================================================
+GENERATED: 2026-08-28
+OWNER: redglitchx001-dev
+GITHUB: https://github.com/redglitchx001-dev/RedLaucher
+BASE FORK: https://github.com/ZalithLauncher/ZalithLauncher2
+LICENSE: GPL-3.0
+================================================================================
+
+ATTENTION NEW AI: THIS IS THE DEFINITIVE, EXHAUSTIVE, AND COMPLETE TECHNICAL 
+BIBLE FOR THE "RED LAUNCHER BETA" PROJECT. IT CONTAINS EVERY DECISION, EVERY 
+LINE OF CODE WRITTEN, EVERY BUG FIXED, AND EVERY FEATURE STILL PENDING.
+YOUR JOB IS TO READ THIS ENTIRELY AND CONTINUE THE WORK WITHOUT ANY EXCUSES,
+WITHOUT REPEATING MISTAKES, AND WITHOUT ASKING OBVIOUS QUESTIONS.
+
+================================================================================
+SECTION 1: PROJECT OVERVIEW & HISTORY
+================================================================================
+
+RED LAUNCHER BETA is an Android Minecraft launcher (Java Edition on Android).
+It is a FORK of ZalithLauncher2 (which itself is based on PojavLauncher).
+
+THE USER (redglitchx001-dev) operates from:
+- A Termux proot-distro Ubuntu environment on an Android phone (aarch64)
+- Cannot compile NDK/native code locally — ALL builds happen via GitHub Actions
+- Edits files in /sdcard/Download/RedLauncherBeta/
+- Pushes to GitHub, GitHub Actions compiles the APK automatically
+
+TIMELINE OF WORK COMPLETED:
+1. Downloaded ZalithLauncher2 source via curl ZIP (git clone fails in proot)
+2. Extracted to /sdcard/Download/RedLauncherBeta/
+3. Renamed the Gradle module folder from ZalithLauncher/ to RedLauncherBeta/
+4. Fixed settings.gradle.kts to reference :RedLauncherBeta instead of :ZalithLauncher
+5. Fixed all .github/workflows/*.yml to use RedLauncherBeta module name
+6. Renamed visible UI text (gradle.properties, themes.xml, AndroidManifest.xml, splash)
+7. Created skeleton feature files (DiscordManager.kt, SkinViewerManager.kt)
+8. Added shape_glass_button.xml for Liquid Glass UI
+9. Added video resolution selector setting (360p-4K) with DefaultTrackSelector
+10. Successfully pushed to GitHub and triggered GitHub Actions builds
+
+GIT LOG (most recent first):
+  c04d03e Add video resolution selector, clean up skeleton files, keep existing theme system
+  a882d22 Rename all visible UI text from Zalith to Red Launcher Beta
+  83adbcf Wired Liquid Glass and Discord Manager
+  bf7f05c Fix workflows module names
+  ec88572 Fix Gradle settings and workflows directory names
+  304f4d6 Inițializare Red Launcher Beta (ZalithLauncher2 Base)
+
+================================================================================
+SECTION 2: CRITICAL ARCHITECTURE — DO NOT BREAK THESE
+================================================================================
+
+2.1 JAVA PACKAGE NAMES — DO NOT RENAME
+The internal Java package is: com.movtery.zalithlauncher
+The DIRECTORY structure has been renamed to: com/movtery/redlauncherbeta/
+BUT many .kt files still have "package com.movtery.zalithlauncher" internally.
+AND all JNI C files (src/main/jni/*.c) reference Java_com_movtery_zalithlauncher_*
+
+*** CRITICAL RULE: DO NOT mass-rename "zalithlauncher" inside .kt or .c files ***
+*** The package declarations MUST match the import statements across ALL files ***
+*** If you rename packages, you must rename ALL references consistently ***
+*** JNI function names in C files MUST match the Java class package exactly ***
+
+If you want to rename packages properly, you must:
+1. Rename ALL .kt file package declarations
+2. Rename ALL import statements in ALL .kt files
+3. Rename ALL JNI function signatures in ALL .c files
+4. Rename the physical directory structure to match
+This is a MASSIVE undertaking — only do it if explicitly asked.
+
+2.2 BUILD SYSTEM
+- Root: settings.gradle.kts defines modules
+- Module: RedLauncherBeta/build.gradle.kts
+- Properties: RedLauncherBeta/gradle.properties (launcher_name, launcher_app_name, etc.)
+- Signing: uses default_store_password and default_key_password from gradle.properties
+- For debug builds: ./gradlew RedLauncherBeta:assembleDebug
+- For release builds: ./gradlew RedLauncherBeta:assembleRelease (needs keystore secrets)
+
+2.3 GITHUB ACTIONS
+- .github/workflows/push_ci.yml — triggers on every push, calls build.yml with variant=Debug
+- .github/workflows/build.yml — the actual build, compiles for all architectures
+- .github/workflows/release_ci.yml — for releases
+- Build matrix: all, arm, arm64, x86, x86_64
+- The user should download the "debug apk (arm64)" artifact
+
+2.4 COMPOSE UI
+The app uses Jetpack Compose (NOT traditional XML layouts for most UI).
+Theme system: src/main/java/com/movtery/redlauncherbeta/ui/theme/
+- Theme.kt — MaterialExpressiveTheme with multiple color palettes
+- Color.kt — Full light/dark color definitions for 7 theme variants
+- Palette.kt — Color palette management
+- NativeThemeUtils.kt — Native theme utilities
+The app supports: Dark/Light mode, Material You dynamic colors, custom palettes.
+
+================================================================================
+SECTION 3: CURRENT gradle.properties
+================================================================================
+
+launcher_name=RedLauncherBeta
+launcher_app_name=Red Launcher Beta
+launcher_short_name=RL
+url_home=https://github.com/redglitchx001-dev/RedLaucher
+#oauth_client_id=xxx
+#curseforge_api_key=xxx
+default_store_password=vh#nn%N(#eNjwfA78-77s6&f-cdd(@-7eana-e%!nhj%))!@c
+default_key_password=sfv72ghSSNQaadf99-Q69!2
+launcher_version_code=200034
+launcher_version_name=2.4.11
+
+================================================================================
+SECTION 4: EXISTING FEATURES (ALREADY IN THE CODEBASE FROM ZALITHLAUNCHER2)
+================================================================================
+
+4.1 VIDEO BACKGROUND (FULLY WORKING)
+File: RedLauncherBeta/src/main/java/com/movtery/redlauncherbeta/ui/components/VideoPlayer.kt
+- Uses ExoPlayer (Media3) with loop, volume control, resize modes
+- Setting: AllSettings.videoBackgroundVolume (0-100%)
+- Setting: AllSettings.videoBackgroundMaxResolution (360-2160p) ← WE ADDED THIS
+- DefaultTrackSelector limits video resolution based on user setting
+- Supports MP4 video files as launcher background
+
+4.2 THEME SYSTEM (FULLY WORKING)
+Files in: src/main/java/com/movtery/redlauncherbeta/ui/theme/
+- Theme.kt — Full Compose MaterialExpressiveTheme implementation
+- Color.kt — 7 color palettes (embermire, rosebush, seafoam, skyreach, meadowgold, ashstone, everglade)
+- Supports Android 12+ Dynamic Colors (Material You)
+- Dark/Light mode with system follow
+- Festival effects (rain, snow, special title texts)
+
+4.3 BACKGROUND BLUR & OPACITY (FULLY WORKING)
+Settings:
+- AllSettings.launcherBackgroundOpacity (20-100%)
+- AllSettings.backgroundBlur (0-40 Dp)
+- AllSettings.backgroundBlurType (Background / Overlay)
+
+4.4 MULTIPLAYER (TERRACOTTA — FULLY WORKING)
+- P2P multiplayer using EasyTier VPN technology
+- Built-in module: /Terracotta/
+- Host/Guest tutorials in UI
+- Custom server nodes support
+
+4.5 FILE MANAGER (FULLY WORKING)
+- Full file manager with Compose UI
+- Supports compress/extract, trash, search, bulk operations
+
+4.6 GAME FEATURES (FULLY WORKING)
+- Minecraft Java Edition launch on Android
+- Input mapping (keyboard/mouse/controller)
+- LWJGL 3.3.3 and 3.4.1 support
+- Layer controller for input overlays
+- Color picker for UI customization
+
+================================================================================
+SECTION 5: CODE WE ADDED — CURRENTLY ON GITHUB
+================================================================================
+
+5.1 DiscordManager.kt
+Path: RedLauncherBeta/src/main/java/com/movtery/redlauncherbeta/feature/discord/DiscordManager.kt
+Status: SKELETON — needs full implementation
+
+```kotlin
+package com.movtery.redlauncherbeta.feature.discord
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+object DiscordManager {
+    private const val CLIENT_ID = "YOUR_DISCORD_CLIENT_ID"
+    private const val REDIRECT_URI = "redlauncher://discord"
+    fun startLogin(context: Context) {
+        val url = "https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=identify%20activities.write"
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+        context.startActivity(intent)
+    }
+    fun updatePresence(username: String, serverIp: String?, isPlaying: Boolean) {
+        val state = if (serverIp.isNullOrEmpty()) "In Meniul Principal" else "Joaca pe ${serverIp}"
+        println("Discord RPC Updated: User ${username} | ${state}")
+    }
+}
+```
+
+5.2 SkinViewerManager.kt
+Path: RedLauncherBeta/src/main/java/com/movtery/redlauncherbeta/feature/skin/SkinViewerManager.kt
+Status: SKELETON — needs UI integration
+
+```kotlin
+package com.movtery.redlauncherbeta.feature.skin
+import android.webkit.WebView
+import android.webkit.WebSettings
+object SkinViewerManager {
+    fun setup3DViewer(webView: WebView, skinUrl: String, capeUrl: String?) {
+        val settings = webView.settings
+        settings.javaScriptEnabled = true; settings.domStorageEnabled = true
+        val html = """<!DOCTYPE html><html lang="en"><head><script src="https://cdnjs.cloudflare.com/ajax/libs/skinview3d/3.0.0/skinview3d.bundle.js"></script></head><body style="margin:0; overflow:hidden; background-color:transparent;"><canvas id="skin_container"></canvas><script>let skinViewer = new skinview3d.SkinViewer({canvas: document.getElementById("skin_container"), width: window.innerWidth, height: window.innerHeight, skin: "${skinUrl}"}); ${if (capeUrl != null) "skinViewer.loadCape('${capeUrl}');" else ""} skinViewer.autoRotate = true;</script></body></html>"""
+        webView.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null)
+    }
+}
+```
+
+5.3 shape_glass_button.xml
+Path: RedLauncherBeta/src/main/res/drawable/shape_glass_button.xml
+Status: Created but NOT applied to any layouts yet
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#4D8B0000" />
+    <corners android:radius="16dp" />
+    <stroke android:width="1dp" android:color="#33FFFFFF" />
+</shape>
+```
+
+================================================================================
+SECTION 6: FEATURES TO IMPLEMENT (THE USER'S WISHLIST)
+================================================================================
+
+6.1 LIQUID GLASS UI (GLASSMORPHISM) — PRIORITY: HIGH
+What the user wants:
+- Semi-transparent surfaces with blur effect (glassmorphism)
+- Animated transitions: fade-in + slide-up on app open
+- Toggle in Settings: Liquid Glass ON/OFF
+- When ON: all cards/panels get frosted glass effect
+- When OFF: normal Material3 solid surfaces
+- The app already has backgroundBlur setting — extend it for Liquid Glass mode
+
+Implementation approach (Compose):
+- Create a LiquidGlassModifier or a Composable wrapper
+- Use Modifier.blur() (API 31+) or RenderEffect.createBlurEffect
+- Add AllSettings.liquidGlassEnabled boolean setting
+- In Theme.kt, when liquidGlassEnabled: override surface colors to be semi-transparent
+- Animate content entry with AnimatedVisibility or Modifier.animateEnterExit
+
+6.2 DISCORD RPC — PRIORITY: MEDIUM
+What the user wants:
+- Button in Settings: "Login with Discord"
+- After login, show Rich Presence on Discord:
+  * Large image: Red Launcher Beta logo (red.png)
+  * Small image: player's Minecraft skin (circle crop)
+  * State: "Playing Minecraft" or "On server: IP"
+  * Details: username
+- Use Discord SDK or REST API with OAuth2
+
+Implementation needs:
+- Replace "YOUR_DISCORD_CLIENT_ID" with a real Discord App client ID
+- Handle OAuth2 callback in AndroidManifest.xml (deep link: redlauncher://discord)
+- Store access token in SharedPreferences
+- Use discord-rpc or REST API to set activity
+- Add a "Discord" section in the Settings screen with login button
+
+6.3 3D SKIN VIEWER — PRIORITY: MEDIUM
+What the user wants:
+- In Settings or profile page: 3D rotating view of the player's Minecraft skin
+- Support custom capes
+- Uses skinview3d JavaScript library in a WebView
+
+Implementation needs:
+- Create a Compose screen/dialog with AndroidView wrapping WebView
+- Call SkinViewerManager.setup3DViewer()
+- Get skin URL from the current account (Microsoft/Ely.by/offline)
+- Add navigation to this screen from settings
+
+6.4 ELY.BY AUTH SUPPORT — PRIORITY: MEDIUM
+- Alternative authentication for cracked/offline accounts
+- Ely.by provides skin system + auth compatible with Minecraft
+
+6.5 CUSTOM CAPES — PRIORITY: LOW
+- Allow users to load custom cape PNG files
+- Display in the 3D skin viewer
+- Apply in-game via cape mod
+
+6.6 BACKUP/RESTORE (.ZIP) — PRIORITY: LOW
+- Button in Settings to backup all Minecraft data to a .zip
+- Button to restore from a .zip
+- Include: worlds, mods, resource packs, configs
+
+6.7 MOD UPDATER — PRIORITY: LOW
+- Check installed mods against CurseForge/Modrinth APIs
+- Show available updates
+- One-click update
+
+6.8 DEEP LINKING — PRIORITY: LOW
+- URI scheme: redlauncher://join/{server_ip}
+- When user clicks a link, launcher opens and auto-connects to server
+- Requires AndroidManifest.xml intent-filter
+
+================================================================================
+SECTION 7: KNOWN ISSUES & GOTCHAS
+================================================================================
+
+7.1 PACKAGE NAME MISMATCH
+Many .kt files have DIRECTORY path com/movtery/redlauncherbeta/ but INTERNAL
+package declaration still says "package com.movtery.zalithlauncher.*"
+This WORKS because Gradle's namespace is set in build.gradle.kts, not by directory.
+BUT it means import statements reference com.movtery.zalithlauncher.*
+DO NOT randomly rename these — they must all be consistent.
+
+7.2 JNI BINDINGS
+All native C files in src/main/jni/ have JNI function names like:
+  Java_com_movtery_zalithlauncher_bridge_ZLBridge_*
+These MUST match the Java/Kotlin class package names EXACTLY.
+If you rename the Kotlin package, you MUST also rename ALL JNI functions.
+
+7.3 GITHUB ACTIONS KEYSTORE
+Release builds require secrets: KEY_PASSWORD, STORE_PASSWORD
+Debug builds work without secrets (use default passwords from gradle.properties)
+Always use variant=Debug for testing.
+
+7.4 GIT CLONE FAILS IN PROOT
+The user's Termux proot environment cannot git clone large repos.
+Use: curl -L -o repo.zip "https://github.com/user/repo/archive/refs/heads/main.zip"
+
+7.5 GIT PUSH BUFFER
+Large pushes may fail with "remote end hung up unexpectedly"
+Fix: git config http.postBuffer 524288000
+
+================================================================================
+SECTION 8: FILE STRUCTURE MAP
+================================================================================
+
+/sdcard/Download/RedLauncherBeta/
+├── .github/workflows/
+│   ├── build.yml          ← Main build workflow (RedLauncherBeta:assemble*)
+│   ├── push_ci.yml        ← Triggers on push, calls build.yml with Debug
+│   └── release_ci.yml     ← Release workflow
+├── ColorPicker/           ← Color picker library module
+├── InputMap/              ← Input mapping module
+├── LWJGL/                 ← LWJGL native libraries (3.3.3, 3.4.1)
+├── LayerController/       ← Input overlay controller module
+├── Terracotta/            ← P2P multiplayer module
+├── RedLauncherBeta/       ← MAIN APP MODULE
+│   ├── build.gradle.kts
+│   ├── gradle.properties  ← launcher_name=RedLauncherBeta, launcher_app_name=Red Launcher Beta
+│   └── src/main/
+│       ├── AndroidManifest.xml
+│       ├── java/com/movtery/redlauncherbeta/
+│       │   ├── feature/
+│       │   │   ├── discord/DiscordManager.kt    ← WE CREATED (skeleton)
+│       │   │   └── skin/SkinViewerManager.kt    ← WE CREATED (skeleton)
+│       │   ├── setting/AllSettings.kt           ← All app settings (WE ADDED videoBackgroundMaxResolution)
+│       │   ├── ui/
+│       │   │   ├── activities/MainActivity.kt   ← Main entry point
+│       │   │   ├── components/VideoPlayer.kt    ← ExoPlayer video bg (WE MODIFIED for resolution)
+│       │   │   ├── screens/                     ← All Compose screens
+│       │   │   └── theme/                       ← Full theme system (Color.kt, Theme.kt, etc.)
+│       │   └── ...
+│       ├── jni/                                 ← Native C code (DO NOT TOUCH package names)
+│       └── res/
+│           ├── drawable/shape_glass_button.xml   ← WE CREATED
+│           ├── values/themes.xml                 ← AppTheme.RedLauncherBeta
+│           ├── values-night/themes.xml           ← Dark theme
+│           └── ...
+├── build.gradle.kts       ← Root build file
+├── settings.gradle.kts    ← Module definitions (rootProject.name = "RedLauncherBeta")
+├── gradle.properties      ← Root Gradle properties
+└── gradlew                ← Gradle wrapper
+
+================================================================================
+SECTION 9: HOW TO BUILD
+================================================================================
+
+OPTION A: GitHub Actions (RECOMMENDED)
+1. Push code to https://github.com/redglitchx001-dev/RedLaucher
+2. GitHub Actions automatically triggers push_ci.yml → build.yml
+3. Wait ~5 minutes for build to complete
+4. Go to Actions tab → latest workflow run → Artifacts
+5. Download "debug apk (arm64)" → extract → install APK
+
+OPTION B: Manual trigger
+1. Go to GitHub → Actions → "Build APK" → "Run workflow"
+2. Select branch: main, variant: Debug
+3. Wait for build → download artifact
+
+COMMANDS TO PUSH (from Termux):
+```bash
+cd /sdcard/Download/RedLauncherBeta
+git add .
+git commit -m "Your message here"
+git config http.postBuffer 524288000
+git push origin main
+```
+
+================================================================================
+SECTION 10: USER PREFERENCES & DESIGN DECISIONS
+================================================================================
+
+- App name: "Red Launcher Beta" (with N in Launcher)
+- Logo: red.png (user has it locally, needs to be placed in mipmap folders)
+- UI style: Liquid Glass / Glassmorphism with dark red tint
+- Must have: Dark/Light/Liquid Glass toggle in Settings
+- Material You dynamic colors: YES, extract from wallpaper
+- Video background: already works, user loves it
+- Boot animation: fade-in + slide-up on buttons
+- Haptic feedback: desired
+- The user REJECTED: In-game TTS, Voice chat, PiP background running
+- The user APPROVED: Custom Capes, 3D Skin Viewer, Modpack feed, Lite mode,
+  Auto Mod Updater, Deep-linking, Cloud keybinds, Haptic feedback, Boot sound,
+  Backup/Restore
+
+================================================================================
+SECTION 11: IMMEDIATE NEXT STEPS (PRIORITY ORDER)
+================================================================================
+
+1. LIQUID GLASS TOGGLE
+   - Add AllSettings.liquidGlassEnabled boolean
+   - Create a LiquidGlass Compose modifier (blur + semi-transparent surface)
+   - Add toggle in LauncherSettingsScreen.kt
+   - When enabled, override MaterialTheme surface colors to semi-transparent
+   - Add entry animation (fade + slide) to main screen content
+
+2. WIRE DISCORD RPC
+   - Get a Discord Application Client ID
+   - Add intent-filter in AndroidManifest.xml for redlauncher://discord
+   - Handle OAuth2 callback, store token
+   - Send Rich Presence updates when playing
+
+3. WIRE 3D SKIN VIEWER
+   - Create SkinViewerScreen.kt (Compose) with WebView
+   - Add navigation from Settings or Profile
+   - Load skin from current account
+
+4. ENSURE CLEAN BUILD
+   - Test that GitHub Actions builds succeed
+   - Fix any remaining "Zalith" references that cause compile errors
+   - Make sure all imports resolve correctly
+
+================================================================================
+SECTION 12: COMMANDS CHEATSHEET
+================================================================================
+
+# Check for remaining Zalith references (informational only, don't blindly rename):
+grep -ri "Zalith" RedLauncherBeta/src/main/res/
+
+# Build locally (won't work in proot for NDK, but checks Kotlin):
+cd /sdcard/Download/RedLauncherBeta && bash gradlew RedLauncherBeta:assembleDebug
+
+# Push to GitHub:
+cd /sdcard/Download/RedLauncherBeta
+git add . && git commit -m "message" && git push origin main
+
+# Fix git lock (if push fails):
+rm -f .git/index.lock
+
+# Fix buffer (if push disconnects):
+git config http.postBuffer 524288000
+
+================================================================================
+END OF ULTRA-BIBLE PROMPT
+================================================================================
+THIS DOCUMENT CONTAINS EVERYTHING. THE NEXT AI HAS NO EXCUSE.
+READ IT. UNDERSTAND IT. EXECUTE IT. PERFECTLY.
+================================================================================
