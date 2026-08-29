@@ -58,6 +58,7 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.CategoryIcon
 import com.movtery.zalithlauncher.ui.screens.content.elements.CategoryItem
 import com.movtery.zalithlauncher.ui.screens.content.settings.AboutInfoScreen
 import com.movtery.zalithlauncher.ui.screens.content.settings.ControlManageScreen
+import com.movtery.zalithlauncher.ui.screens.content.settings.DiscordSettingsScreen
 import com.movtery.zalithlauncher.ui.screens.content.settings.ControlSettingsScreen
 import com.movtery.zalithlauncher.ui.screens.content.settings.GameSettingsScreen
 import com.movtery.zalithlauncher.ui.screens.content.settings.GamepadSettingsScreen
@@ -119,6 +120,7 @@ private val settingItems = listOf(
     CategoryItem(NormalNavKey.Settings.Control, { CategoryIcon(R.drawable.ic_videogame_asset_outlined, R.string.settings_tab_control) }, R.string.settings_tab_control),
     CategoryItem(NormalNavKey.Settings.Gamepad, { CategoryIcon(R.drawable.ic_sports_esports_outlined, R.string.settings_tab_gamepad) }, R.string.settings_tab_gamepad),
     CategoryItem(NormalNavKey.Settings.Launcher, { CategoryIcon(R.drawable.ic_setting_launcher, R.string.settings_tab_launcher) }, R.string.settings_tab_launcher),
+    CategoryItem(NormalNavKey.Settings.Discord, { CategoryIcon(R.drawable.ic_chat_info, R.string.settings_tab_discord) }, R.string.settings_tab_discord),
     CategoryItem(NormalNavKey.Settings.JavaManager, { CategoryIcon(R.drawable.ic_java, R.string.settings_tab_java_manage) }, R.string.settings_tab_java_manage, division = true),
     CategoryItem(NormalNavKey.Settings.ControlManager, { CategoryIcon(R.drawable.ic_videogame_asset_outlined, R.string.settings_tab_control_manage) }, R.string.settings_tab_control_manage),
     CategoryItem(NormalNavKey.Settings.AboutInfo, { CategoryIcon(R.drawable.ic_info_outlined, R.string.settings_tab_info_about) }, R.string.settings_tab_info_about, division = true)
@@ -231,6 +233,9 @@ private fun NavigationUI(
                         toHomePageEditor = toHomePageEditor,
                         submitError = submitError,
                     )
+                }
+                entry<NormalNavKey.Settings.Discord> {
+                    DiscordSettingsScreen(key, settingsScreenKey, mainScreenKey, eventViewModel)
                 }
                 entry<NormalNavKey.Settings.JavaManager> {
                     JavaManageScreen(key, settingsScreenKey, mainScreenKey, eventViewModel, submitError)

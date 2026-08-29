@@ -56,6 +56,7 @@ import com.movtery.zalithlauncher.notification.NotificationManager
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.path.URL_SUPPORT
 import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.redlauncherbeta.feature.discord.DiscordManager
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
@@ -185,7 +186,8 @@ class MainActivity : BaseAppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        com.movtery.redlauncherbeta.feature.theme.ThemeManager.applyTheme(this, com.movtery.redlauncherbeta.feature.theme.ThemeManager.ThemeStyle.LIQUID_GLASS)
+        // Initialize Discord Rich Presence (connects if enabled and a token is saved)
+        DiscordManager.init(this)
         //处理外部导入
         val isImporting = handleImportIfNeeded(intent)
 
@@ -841,6 +843,8 @@ class MainActivity : BaseAppCompatActivity() {
     override fun onResume() {
         super.onResume()
         ControlManager.checkDefaultAndRefresh(this@MainActivity)
+        // Show "In Meniul Principal" on Discord while browsing the launcher
+        DiscordManager.onAppForeground()
     }
 
     @SuppressLint("RestrictedApi")
