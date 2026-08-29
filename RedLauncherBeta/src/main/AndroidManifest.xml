@@ -110,17 +110,8 @@
         <activity
             android:name=".ui.activities.MainActivity"
             android:launchMode="singleTop"
-            android:exported="true"
             android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation"
-            android:screenOrientation="sensorLandscape">
-            <!-- Discord OAuth2 回调: redlauncher://discord?code=... -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="redlauncher" android:host="discord" />
-            </intent-filter>
-        </activity>
+            android:screenOrientation="sensorLandscape" />
         <activity
             android:name=".ui.activities.ControlEditorActivity"
             android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation"

@@ -18,11 +18,6 @@
 
 package com.movtery.zalithlauncher.ui.screens.content
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -109,14 +104,9 @@ fun LauncherScreen(
         screenKey = NormalNavKey.LauncherMain,
         currentKey = backStackViewModel.mainScreen.currentKey
     ) { isVisible ->
-        //打开启动器时的入场动画：淡入 + 上滑
-        AnimatedVisibility(
-            visible = true,
-            enter = fadeIn(tween(400)) + slideInVertically(tween(450)) { it / 6 }
+        Row(
+            modifier = Modifier.fillMaxSize()
         ) {
-            Row(
-                modifier = Modifier.fillMaxSize()
-            ) {
             CompositionLocalProvider(
                 LocalUriHandler provides object : UriHandler {
                     override fun openUri(uri: String) {
@@ -159,7 +149,6 @@ fun LauncherScreen(
                 toVersionManageScreen = toVersionManageScreen,
                 toVersionSettingsScreen = toVersionSettingsScreen
             )
-            }
         }
     }
 }

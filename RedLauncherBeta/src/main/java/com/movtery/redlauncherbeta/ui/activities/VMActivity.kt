@@ -774,11 +774,6 @@ fun runGame(
     version: Version,
     account: Account,
 ) {
-    //Discord Rich Presence：游戏启动
-    val serverIp = (version.quickPlaySingle as? com.movtery.zalithlauncher.ui.screens.content.elements.QuickPlay.Server)
-        ?.serverAddress
-    com.movtery.redlauncherbeta.feature.discord.DiscordManager.notifyGameStart(account, serverIp)
-
     val intent = Intent(context, VMActivity::class.java).apply {
         putExtra(INTENT_RUN_GAME, true)
         putExtra(INTENT_GAME_CONFIG, LaunchConfig(version, account))

@@ -118,32 +118,11 @@ object AccountsManager {
     /**
      * 刷新当前已保存的认证服务器，认证服务器保存在数据库中
      */
-    //内置预设：Ely.by 认证服务器（authlib-injector 兼容）
-    const val ELYBY_SERVER_NAME = "Ely.by"
-    const val ELYBY_BASE_URL = "https://account.ely.by/api/authlib-injector"
-    const val ELYBY_REGISTER_URL = "https://ely.by/register"
-
     fun reloadAuthServers() {
         scope.launch {
             val loadedServers = authServerDao.getAllServers()
             _authServers.clear()
             _authServers.addAll(loadedServers)
-
-            //内置 Ely.by 预设（用户未保存过时自动添加）
-            if (loadedServers.none { it.baseUrl == ELYBY_BASE_URL }) {
-                val preset = AuthServer(
-                    baseUrl = ELYBY_BASE_URL,
-                    serverName = ELYBY_SERVER_NAME,
-                    register = ELYBY_REGISTER_URL
-                )
-                runCatching {
-                    authServerDao.saveServer(preset)
-                    _authServers.add(preset)
-                    Logger.info(TAG, "Seeded preset auth server: Ely.by")
-                }.onFailure { e ->
-                    Logger.warning(TAG, "Failed to seed Ely.by preset", e)
-                }
-            }
 
             _authServers.sortWith { o1, o2 -> o1.serverName.compareTo(o2.serverName) }
             _authServersFlow.value = _authServers.toList()
@@ -244,7 +223,7 @@ object AccountsManager {
 
     private fun checkLimit(): Boolean {
         val circumventLimit = File(PathManager.DIR_FILES_EXTERNAL, "circumventLimit")
-        return !circumventLimit.exists() && !isInGreaterChina() && !hasMicrosoftAccount() && !hasAuthServerAccount()
+        return !circumventLimit.exists() && !isInGreaterChina() && !hasMicrosoftAccount()
     }
 
     /**
@@ -310,11 +289,6 @@ object AccountsManager {
      * 是否已登录过微软账号
      */
     fun hasMicrosoftAccount(): Boolean = _accounts.any { it.isMicrosoftAccount() }
-
-    /**
-     * 是否已登录过认证服务器账号（如 Ely.by）
-     */
-    fun hasAuthServerAccount(): Boolean = _accounts.any { it.isAuthServerAccount() }
 
     /**
      * 通过账号的profileId读取账号

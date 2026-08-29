@@ -26,7 +26,6 @@ val defaultOAuthClientID = project.findProperty("oauth_client_id") as? String
 val defaultStorePassword = project.findProperty("default_store_password") as? String ?: error("The \"default_store_password\" property is not set in gradle.properties.")
 val defaultKeyPassword = project.findProperty("default_key_password") as? String ?: error("The \"default_key_password\" property is not set in gradle.properties.")
 val defaultCurseForgeApiKey = project.findProperty("curseforge_api_key") as? String
-val defaultDiscordClientId = project.findProperty("discord_client_id") as? String
 
 val projectArch: String = System.getProperty("arch", "all")
 
@@ -211,7 +210,6 @@ buildKeys {
     string("LAUNCHER_SHORT_NAME", launcherShortName, true)
     string("URL_HOME", launcherUrl, true)
     string("CURSEFORGE_API", getKeyFromLocal("CURSEFORGE_API_KEY", ".curseforge_api.txt", defaultCurseForgeApiKey), true)
-    string("DISCORD_CLIENT_ID", getKeyFromLocal("DISCORD_CLIENT_ID", ".discord_client_id.txt", defaultDiscordClientId), true)
     string("BUILD_ARCH", projectArch)
 }
 

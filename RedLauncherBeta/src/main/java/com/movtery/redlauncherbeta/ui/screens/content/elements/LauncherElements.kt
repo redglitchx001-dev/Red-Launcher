@@ -376,24 +376,16 @@ fun Modifier.backgroundGlass(
 /**
  * 背景模糊效果
  */
-/** Liquid Glass 模式下的最低模糊半径，保证磨砂玻璃效果可见 */
-private const val LIQUID_GLASS_MIN_BLUR = 16
-
 @Composable
 private fun Modifier.glass(
     blur: Int,
     color: Color?,
     hazeState: HazeState?,
 ): Modifier {
-    // Liquid Glass 模式：即使用户把背景模糊设为 0，也保持最低模糊度
-    val effectiveBlur = if (AllSettings.liquidGlassEnabled.state) {
-        maxOf(blur, LIQUID_GLASS_MIN_BLUR)
-    } else blur
+    if (blur <= 0 || AllSettings.launcherBackgroundOpacity.state >= 100) return this
 
-    if (effectiveBlur <= 0 || AllSettings.launcherBackgroundOpacity.state >= 100) return this
-
-    val t = remember(effectiveBlur) {
-        (effectiveBlur / 80f).coerceIn(0f, 1f)
+    val t = remember(blur) {
+        (blur / 80f).coerceIn(0f, 1f)
     }
 
     val noiseFactor = remember(t) {
@@ -424,7 +416,7 @@ private fun Modifier.glass(
         input = input,
         style = HazeBlurStyle {
             blurEnabled(true)
-            blurRadius(effectiveBlur.dp)
+            blurRadius(blur.dp)
             noiseFactor(noiseFactor)
             colorEffects(colorEffects)
         }
