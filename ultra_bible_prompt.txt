@@ -157,7 +157,18 @@ SECTION 5: CODE WE ADDED — CURRENTLY ON GITHUB
 
 5.1 DiscordManager.kt
 Path: RedLauncherBeta/src/main/java/com/movtery/redlauncherbeta/feature/discord/DiscordManager.kt
-Status: SKELETON — needs full implementation
+Status: IMPLEMENTED (2026-08-29) — full Rich Presence:
+  - DiscordGateway.kt: WebSocket gateway v10 client (identify, heartbeat,
+    presence updates, auto-reconnect), uses the user's Discord token
+  - Large image: asset "red" (logo); Small image: player's skin face,
+    extracted locally (SkinFaceUtil.kt) and uploaded as asset "skinface"
+    (best effort); Party size: players online/max via the existing
+    pingServer(); Timestamps: play time from game start
+  - Application ID: 1543238280496156714 (user's Discord app)
+  - UI: Settings -> Discord (DiscordSettingsScreen.kt): enable toggle,
+    token input, connect/disconnect
+  - Hooks: LaunchGame.onGameStart, VMActivity.onDestroy -> onGameStop,
+    MainActivity -> init + menu presence ("In Meniul Principal")
 
 ```kotlin
 package com.movtery.redlauncherbeta.feature.discord
@@ -364,6 +375,9 @@ OPTION A: GitHub Actions (RECOMMENDED)
 3. Wait ~5 minutes for build to complete
 4. Go to Actions tab → latest workflow run → Artifacts
 5. Download "debug apk (arm64)" → extract → install APK
+   NOTE (2026-08-29): free accounts have a 500MB artifact quota. Debug
+   builds now upload ONLY the arm64 APK and auto-delete old artifacts
+   (build.yml). Do NOT re-enable uploads for all archs without more storage.
 
 OPTION B: Manual trigger
 1. Go to GitHub → Actions → "Build APK" → "Run workflow"
@@ -407,11 +421,10 @@ SECTION 11: IMMEDIATE NEXT STEPS (PRIORITY ORDER)
    - When enabled, override MaterialTheme surface colors to semi-transparent
    - Add entry animation (fade + slide) to main screen content
 
-2. WIRE DISCORD RPC
-   - Get a Discord Application Client ID
-   - Add intent-filter in AndroidManifest.xml for redlauncher://discord
-   - Handle OAuth2 callback, store token
-   - Send Rich Presence updates when playing
+2. WIRE DISCORD RPC — DONE (2026-08-29), see 5.1
+   - Remaining: verify on device; if the "skinface" asset upload endpoint
+     rejects the user token, fallback = user uploads the face manually in
+     the Developer Portal as asset key "skinface"
 
 3. WIRE 3D SKIN VIEWER
    - Create SkinViewerScreen.kt (Compose) with WebView

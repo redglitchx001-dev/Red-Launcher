@@ -97,6 +97,10 @@ sealed interface NormalNavKey : TitledNavKey {
         @Serializable data object Launcher : Settings {
             @Contextual override val title: AndroidStringText = androidText(R.string.settings_tab_launcher)
         }
+        /** Discord Rich Presence 设置屏幕 */
+        @Serializable data object Discord : Settings {
+            @Contextual override val title: AndroidStringText = androidText(R.string.settings_tab_discord)
+        }
         /** Java管理屏幕 */
         @Serializable data object JavaManager : Settings {
             @Contextual override val title: AndroidStringText = androidText(R.string.settings_tab_java_manage)

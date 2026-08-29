@@ -80,6 +80,7 @@ import com.movtery.zalithlauncher.game.launch.handler.AbstractHandler
 import com.movtery.zalithlauncher.game.launch.handler.GameHandler
 import com.movtery.zalithlauncher.game.launch.handler.HandlerType
 import com.movtery.zalithlauncher.game.launch.handler.JVMHandler
+import com.movtery.redlauncherbeta.feature.discord.DiscordManager
 import com.movtery.zalithlauncher.game.multirt.RuntimesManager
 import com.movtery.zalithlauncher.game.plugin.PluginLoader
 import com.movtery.zalithlauncher.game.renderer.Renderers
@@ -574,6 +575,9 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
     }
 
     override fun onDestroy() {
+        if (intent.getBooleanExtra(INTENT_RUN_GAME, false)) {
+            DiscordManager.onGameStop()
+        }
         stopAllService()
         withHandler { onDestroy() }
         super.onDestroy()

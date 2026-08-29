@@ -31,6 +31,7 @@ import com.movtery.zalithlauncher.game.account.microsoft.MinecraftProfileExcepti
 import com.movtery.zalithlauncher.game.account.microsoft.NotPurchasedMinecraftException
 import com.movtery.zalithlauncher.game.account.microsoft.XboxLoginException
 import com.movtery.zalithlauncher.game.account.microsoft.toLocal
+import com.movtery.redlauncherbeta.feature.discord.DiscordManager
 import com.movtery.zalithlauncher.game.version.download.DownloadMode
 import com.movtery.zalithlauncher.game.version.download.MinecraftDownloader
 import com.movtery.zalithlauncher.game.version.installed.GraphicsApi
@@ -128,6 +129,13 @@ object LaunchGame {
                 checkEnableTouchProxy(version)
                 task.updateMessage(androidText(R.string.game_vulkan_check_title))
                 checkVulkanCapabilities(version, waitForVulkanChecker)
+
+                // Update Discord Rich Presence with server + account + skin face
+                DiscordManager.onGameStart(
+                    serverIp = version.getServerIp(),
+                    accountName = account.username,
+                    skinFile = account.getSkinFile()
+                )
 
                 runGame(context, version, account)
                 exitActivity()
