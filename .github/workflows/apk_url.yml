@@ -16,7 +16,10 @@ jobs:
   build:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     env:
+      GH_TOKEN: ${{ github.token }}
       KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
       OAUTH_CLIENT_ID: ${{ secrets.OAUTH_CLIENT_ID }}
@@ -47,11 +50,11 @@ jobs:
           cp "$APK" "$OUT"
           SIZE=$(du -h "$OUT" | cut -f1)
           TAG="apk-latest"
-          if ! gh release view "$TAG" >/dev/null 2>&1; then
-            gh release create "$TAG" --title "Red Launcher Beta - latest APK" \
+          if ! gh -R "$GITHUB_REPOSITORY" release view "$TAG" >/dev/null 2>&1; then
+            gh -R "$GITHUB_REPOSITORY" release create "$TAG" --title "Red Launcher Beta - latest APK" \
               --notes "Latest Debug APK (arm64). Re-uploaded on every build."
           fi
-          gh release upload "$TAG" "$OUT" --clobber
+          gh -R "$GITHUB_REPOSITORY" release upload "$TAG" "$OUT" --clobber
           URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/RedLauncherBeta-Debug-arm64.apk"
           echo "### OK Red Launcher Beta APK ($SIZE)" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
@@ -61,10 +64,24 @@ jobs:
       - name: "Fallback: upload to temp file host"
         if: inputs.variant == 'Debug' && failure()
         run: |
-          APK=$(ls RedLauncherBeta/build/outputs/apk/debug/*.apk | head -1)
+          APK=$(ls RedLauncherBeta/build/outputs/apk/debug/*.apk 2>/dev/null | head -1)
+          if [ ! -f "$APK" ]; then
+            echo "**No APK was built - nothing to upload. See the build log.**" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
           SIZE=$(du -h "$APK" | cut -f1)
-          echo "GitHub Release failed - trying temp hosts..." >> "$GITHUB_STEP_SUMMARY"
+          echo "GitHub Release failed - trying temp hosts... ($SIZE)" >> "$GITHUB_STEP_SUMMARY"
 
+          # litterbox.catbox.moe - up to 1 GB, kept for 72h (works for big APKs)
+          DIRECT=$(curl -s -m 900 -F "req=fileupload" -F "time=72h" -F "file=@$APK" https://litterbox.catbox.moe/resources/internals/api.php | grep -o 'https://litter.catbox.moe/[A-Za-z0-9]*' | head -1)
+          if [ -n "$DIRECT" ]; then
+            echo "litterbox link: $DIRECT"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "**Download (valid 72 hours):** $DIRECT" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          # tmpfiles.org / bashupload cap the upload at ~100 MB, so they only help for small APKs
           RESP=$(curl -s -m 600 -F "file=@$APK" https://tmpfiles.org/api/v1/upload)
           URL=$(echo "$RESP" | grep -o 'https://tmpfiles.org/[0-9]*/[^"]*' | head -1)
           if [ -n "$URL" ]; then
@@ -97,7 +114,7 @@ jobs:
           exit 1
 
       - name: "Also upload as GitHub artifact (when quota allows)"
-        if: inputs.variant == 'Debug'
+        if: inputs.variant == 'Debug' && !cancelled()
         continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
