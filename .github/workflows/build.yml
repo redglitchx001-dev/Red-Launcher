@@ -52,7 +52,13 @@ jobs:
       - name: Build APK for ${{ matrix.arch }}
         run: |
           chmod +x gradlew
-          ./gradlew RedLauncherBeta:assemble${{ inputs.variant }} -Darch=${{ matrix.arch }}
+          ./gradlew RedLauncherBeta:assemble${{ inputs.variant }} -Darch=${{ matrix.arch }} 2>&1 | tee build-output.log
+          exit ${PIPESTATUS[0]}
+
+      - name: Report build errors
+        if: failure()
+        run: |
+          grep -E "^e: |error:|FAILURE:|What went wrong|Caused by|Execution failed" build-output.log | head -60 | sed 's/^/::error:: /'
 
       - name: Upload Release APK for ${{ matrix.arch }}
         if: inputs.variant == 'Release'
