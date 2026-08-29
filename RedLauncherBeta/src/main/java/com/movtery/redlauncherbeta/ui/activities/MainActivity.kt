@@ -67,6 +67,7 @@ import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.content.elements.Background
 import com.movtery.zalithlauncher.ui.screens.content.elements.LaunchGameOperation
 import com.movtery.zalithlauncher.ui.screens.content.navigateToLogView
+import com.movtery.redlauncherbeta.feature.discord.DiscordManager
 import com.movtery.zalithlauncher.ui.screens.main.MainScreen
 import com.movtery.zalithlauncher.ui.screens.main.crashlogs.LogShareMenu
 import com.movtery.zalithlauncher.ui.screens.main.crashlogs.LogShareMenuOperation
@@ -107,6 +108,7 @@ import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
 import com.movtery.zalithlauncher.viewmodel.VulkanCheckerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -186,6 +188,8 @@ class MainActivity : BaseAppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         com.movtery.redlauncherbeta.feature.theme.ThemeManager.applyTheme(this, com.movtery.redlauncherbeta.feature.theme.ThemeManager.ThemeStyle.LIQUID_GLASS)
+        //处理 Discord OAuth2 回调
+        handleDiscordRedirect(intent)
         //处理外部导入
         val isImporting = handleImportIfNeeded(intent)
 
@@ -197,6 +201,26 @@ class MainActivity : BaseAppCompatActivity() {
 
         //注册文件管理器事件监听
         fmEventRegistrar = FileManagerEventRegistrar(this, ::onFileManagerEvent).also { it.start() }
+
+        //Discord 连接状态变化通知
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                var lastState = DiscordManager.state.value
+                DiscordManager.state.collect { newState ->
+                    if (
+                        lastState !is DiscordManager.State.Connected &&
+                        newState is DiscordManager.State.Connected
+                    ) {
+                        Toast.makeText(
+                            this@MainActivity,
+                            getString(R.string.settings_discord_login_success),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    lastState = newState
+                }
+            }
+        }
 
         //初始化通知管理（创建渠道）
         NotificationManager.initManager(this)
@@ -506,6 +530,7 @@ class MainActivity : BaseAppCompatActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        handleDiscordRedirect(intent)
         handleImportIfNeeded(intent)
         // 重载渲染器
         Renderers.init(true)
@@ -516,7 +541,20 @@ class MainActivity : BaseAppCompatActivity() {
     override fun onDestroy() {
         fmEventRegistrar?.stop()
         fmEventRegistrar = null
+        //Discord Rich Presence：清除存在状态
+        com.movtery.redlauncherbeta.feature.discord.DiscordManager.clearPresence()
         super.onDestroy()
+    }
+
+    /**
+     * 处理 Discord OAuth2 回调 deep link（redlauncher://discord?code=...）
+     */
+    private fun handleDiscordRedirect(intent: Intent) {
+        val data = intent.data
+        if (data == null || data.scheme != "redlauncher" || data.host != "discord") return
+        com.movtery.redlauncherbeta.feature.discord.DiscordManager.handleAuthRedirect(data)
+        //消费掉 deep link，防止重复处理
+        intent.data = null
     }
 
     /**
@@ -841,6 +879,8 @@ class MainActivity : BaseAppCompatActivity() {
     override fun onResume() {
         super.onResume()
         ControlManager.checkDefaultAndRefresh(this@MainActivity)
+        //Discord Rich Presence：回到启动器主界面
+        com.movtery.redlauncherbeta.feature.discord.DiscordManager.notifyLauncherForeground()
     }
 
     @SuppressLint("RestrictedApi")
