@@ -78,6 +78,7 @@ import com.movtery.colorpicker.components.HueBarPicker
 import com.movtery.colorpicker.rememberColorPickerController
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.contract.MediaPickerContract
+import com.movtery.redlauncherbeta.feature.discord.DiscordManager
 import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.path.PathManager
@@ -1065,20 +1066,87 @@ private fun BackgroundOperation(
     }
 }
 /**
- * Discord Rich Presence 设置卡片（BISect 12b: minimal body）
+ * Discord Rich Presence 设置卡片
  */
 @Composable
 private fun DiscordSettingsCard(
     modifier: Modifier = Modifier,
     position: CardPosition = CardPosition.Single
 ) {
+    val context = LocalContext.current
+    val discordState by DiscordManager.state.collectAsState()
+
     SettingsCard(
         modifier = modifier,
         position = position
     ) {
-        Text(
-            text = stringResource(R.string.settings_discord_title),
-            style = MaterialTheme.typography.titleSmall
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(all = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.settings_discord_title),
+                style = MaterialTheme.typography.titleSmall
+            )
+
+            when (discordState) {
+                is DiscordManager.State.NotConfigured -> {
+                    Text(
+                        text = stringResource(R.string.settings_discord_not_configured),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                is DiscordManager.State.Disconnected -> {
+                    Text(
+                        text = stringResource(R.string.settings_discord_disconnected),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                is DiscordManager.State.Connected -> {
+                    Text(
+                        text = stringResource(
+                            R.string.settings_discord_connected,
+                            discordState.username
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                if (discordState is DiscordManager.State.Connected) {
+                    FilledTonalButton(
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            DiscordManager.disconnect()
+                        }
+                    ) {
+                        Text(text = stringResource(R.string.settings_discord_disconnect))
+                    }
+                } else {
+                    FilledTonalButton(
+                        modifier = Modifier.weight(1f),
+                        enabled = discordState !is DiscordManager.State.NotConfigured,
+                        onClick = {
+                            DiscordManager.startLogin(context)
+                        }
+                    ) {
+                        Text(text = stringResource(R.string.settings_discord_connect))
+                    }
+                }
+            }
+
+            Text(
+                text = stringResource(R.string.settings_discord_how_tip),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+            )
+        }
     }
 }
