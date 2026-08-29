@@ -156,8 +156,8 @@ class DiscordGateway(
             1 -> sendHeartbeat() // heartbeat request from server
             7 -> { // RECONNECT
                 Log.w(TAG, "Server requested reconnect")
-                val socket = webSocket
-                webSocket = null
+                val socket = this.webSocket
+                this.webSocket = null
                 open.set(false)
                 ready.set(false)
                 stopHeartbeat()
@@ -176,8 +176,8 @@ class DiscordGateway(
                 stopHeartbeat()
                 closedByUser = true
                 listener.onStateChanged("Token invalid — check your Discord token", false)
-                runCatching { webSocket?.close(4004, "Invalid session") }
-                webSocket = null
+                runCatching { webSocket.close(4004, "Invalid session") }
+                this.webSocket = null
             }
             11 -> { // ACK
                 heartbeatAckReceived = true
@@ -193,7 +193,7 @@ class DiscordGateway(
         open.set(false)
         ready.set(false)
         stopHeartbeat()
-        webSocket = null
+        this.webSocket = null
         listener.onStateChanged("Disconnected: $reason ($code)", false)
         if (!closedByUser && reconnectAttempts <= MAX_RECONNECT_ATTEMPTS) {
             reconnectAttempts++
@@ -206,7 +206,7 @@ class DiscordGateway(
         open.set(false)
         ready.set(false)
         stopHeartbeat()
-        webSocket = null
+        this.webSocket = null
         Log.e(TAG, "Gateway failure", t)
         if (closedByUser) return
         if (reconnectAttempts > MAX_RECONNECT_ATTEMPTS) {

@@ -35,7 +35,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -133,7 +132,6 @@ fun DiscordSettingsScreen(
                                     style = MaterialTheme.typography.labelSmall,
                                     modifier = Modifier
                                         .padding(horizontal = 8.dp)
-                                        .align(Alignment.CenterVertically)
                                         .clickable { tokenVisible = !tokenVisible }
                                 )
                             }

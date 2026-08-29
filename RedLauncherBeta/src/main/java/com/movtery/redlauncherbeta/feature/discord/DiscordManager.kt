@@ -397,7 +397,7 @@ object DiscordManager {
                         .header("Authorization", token)
                         .delete()
                         .build()
-                    httpClient.newCall(deleteRequest).execute().use { _ }
+                    runCatching { httpClient.newCall(deleteRequest).execute().close() }
                     val retryRequest = request.newBuilder().post(multipart).build()
                     httpClient.newCall(retryRequest).execute().use { retryResponse ->
                         check(retryResponse.isSuccessful) {
