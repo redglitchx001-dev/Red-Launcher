@@ -31,6 +31,7 @@ import com.movtery.zalithlauncher.game.account.auth_server.data.AuthServer
 import com.movtery.zalithlauncher.game.account.auth_server.getAuthServeInfo
 import com.movtery.zalithlauncher.game.account.microsoft.AsyncStatus
 import com.movtery.zalithlauncher.game.account.microsoft.AuthType
+import com.movtery.zalithlauncher.game.account.microsoft.MicrosoftLoginState
 import com.movtery.zalithlauncher.game.account.microsoft.MinecraftProfileException
 import com.movtery.zalithlauncher.game.account.microsoft.NotPurchasedMinecraftException
 import com.movtery.zalithlauncher.game.account.microsoft.OAuthClientIdMissingException
@@ -46,6 +47,7 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.MicrosoftLoginOper
 import com.movtery.zalithlauncher.utils.copyText
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.network.toLocal
+import com.movtery.zalithlauncher.utils.string.isNotEmptyOrBlank
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.ResponseException
@@ -123,6 +125,8 @@ fun microsoftLogin(
                 androidText(R.string.account_microsoft_coped_device_code, deviceCode.userCode),
                 Toast.LENGTH_SHORT
             )
+            //把设备码交给网页界面常驻显示，并标记登录进行中（WebView 会因此保留会话 Cookie）
+            MicrosoftLoginState.begin(deviceCode.userCode, deviceCode.verificationUrl)
             toWeb(deviceCode.verificationUrl)
             task.updateProgress(-1f)
             task.updateMessage(androidText(R.string.account_microsoft_get_token, deviceCode.userCode))
@@ -182,6 +186,8 @@ fun microsoftLogin(
             }
         },
         onFinally = {
+            //登录结束（成功、失败或被取消）后释放设备码，网页界面的提示条随之消失
+            MicrosoftLoginState.end()
             updateOperation(MicrosoftLoginOperation.None)
         }
     )
@@ -344,41 +350,69 @@ fun addOtherServer(
         task = { task ->
             task.updateProgress(-1f)
             task.updateMessage(androidText(R.string.account_other_login_getting_full_url))
-            val isNide8 = isValidPassportId(serverUrl)
+            val trimmedUrl = serverUrl.trim()
+            val isNide8 = isValidPassportId(trimmedUrl)
             val fullServerUrl = if (isNide8) {
                 //可能是一个统一通行证服务器ID
-                "https://auth.mc-user.com:233/$serverUrl"
+                "https://auth.mc-user.com:233/$trimmedUrl"
             } else {
-                tryGetFullServerUrl(serverUrl)
+                tryGetFullServerUrl(trimmedUrl)
             }
             ensureActive()
             task.updateProgress(0.5f)
             task.updateMessage(androidText(R.string.account_other_login_getting_server_info))
-            runCatching {
-                getAuthServeInfo(fullServerUrl)
-            }.onFailure { th ->
-                Logger.error(TAG, "Failed to get server info", th)
-                onThrowable(th)
-            }.getOrNull()?.let { data ->
-                JSONObject(data).optJSONObject("meta")?.let { meta ->
-                    if (AccountsManager.isAuthServerExists(fullServerUrl)) {
-                        //确保服务器不重复
-                        return@runTask
+
+            /**
+             * 用户填写的地址形式很随意（站点首页、`/api`、带不带尾斜杠、http/https…），
+             * 这里按顺序尝试所有候选地址，取第一个返回合法 authlib-injector 描述的地址。
+             */
+            var serverMeta: JSONObject? = null
+            var workingUrl = fullServerUrl
+            for (candidate in authServerUrlCandidates(fullServerUrl)) {
+                val info = runCatching {
+                    getAuthServeInfo(candidate)
+                }.onFailure { th ->
+                    Logger.warning(TAG, "Auth server info not available at $candidate: ${th.message}")
+                }.getOrNull() ?: continue
+
+                val meta = runCatching { JSONObject(info).optJSONObject("meta") }
+                    .onFailure { th ->
+                        Logger.warning(TAG, "Auth server info at $candidate is not JSON: ${th.message}")
                     }
-                    val server = AuthServer(
-                        serverName = meta.optString("serverName"),
-                        baseUrl = fullServerUrl,
-                        register = if (!isNide8) {
-                            meta.optJSONObject("links")?.optString("register") ?: ""
-                        } else "https://login.mc-user.com:233/$serverUrl"
-                    )
-                    task.updateProgress(0.8f)
-                    task.updateMessage(androidText(R.string.account_other_login_saving_server))
-                    AccountsManager.saveAuthServer(server)
-                    task.updateProgress(1f)
-                    task.updateMessage(androidText(R.string.generic_done))
-                }
+                    .getOrNull() ?: continue
+
+                serverMeta = meta
+                workingUrl = candidate
+                Logger.info(TAG, "Auth server info resolved from $candidate")
+                break
             }
+
+            val meta = serverMeta ?: throw com.movtery.zalithlauncher.game.account.auth_server.ResponseException(
+                "The address did not return a valid auth server description " +
+                    "(the response has no \"meta\" object). " +
+                    "For ely.by the address is https://authserver.ely.by/"
+            )
+
+            if (AccountsManager.isAuthServerExists(workingUrl)) {
+                //确保服务器不重复
+                throw com.movtery.zalithlauncher.game.account.auth_server.ResponseException(
+                    "This auth server is already in the list: $workingUrl"
+                )
+            }
+
+            val server = AuthServer(
+                //服务器没有给出名字时退回主机名，避免列表里出现空白条目
+                serverName = meta.optString("serverName").ifBlank { hostOf(workingUrl) ?: workingUrl },
+                baseUrl = workingUrl,
+                register = if (!isNide8) {
+                    meta.optJSONObject("links")?.optString("register") ?: ""
+                } else "https://login.mc-user.com:233/$trimmedUrl"
+            )
+            task.updateProgress(0.8f)
+            task.updateMessage(androidText(R.string.account_other_login_saving_server))
+            AccountsManager.saveAuthServer(server)
+            task.updateProgress(1f)
+            task.updateMessage(androidText(R.string.generic_done))
         },
         onError = { e ->
             onThrowable(e)
@@ -387,6 +421,47 @@ fun addOtherServer(
     )
 
     TaskSystem.submitTask(task)
+}
+
+/**
+ * 已知验证服务器的接口地址别名。
+ * 用户通常填的是站点首页（例如 `ely.by`），而不是 authlib-injector 接口地址。
+ */
+private val AUTH_SERVER_HOST_ALIASES = mapOf(
+    "ely.by" to "https://authserver.ely.by/",
+    "www.ely.by" to "https://authserver.ely.by/",
+    "account.ely.by" to "https://authserver.ely.by/"
+)
+
+/** 统一通行证的域名，不能回退到根地址（服务器ID是路径的一部分） */
+private val PASSPORT_HOSTS = setOf("auth.mc-user.com")
+
+/**
+ * 生成候选的服务器地址，用于容忍用户的各种写法：
+ * 1. 解析后的地址本身；
+ * 2. 已知站点的接口地址（如 `ely.by` -> `authserver.ely.by`）；
+ * 3. 去掉子路径后的根地址（用户可能填了 `/api`、`/authserver` 之类）。
+ */
+private fun authServerUrlCandidates(resolvedUrl: String): List<String> {
+    val candidates = LinkedHashSet<String>()
+    candidates.add(resolvedUrl.addTrailingSlash())
+
+    val host = hostOf(resolvedUrl)
+    host?.let { AUTH_SERVER_HOST_ALIASES[it] }?.let { candidates.add(it) }
+
+    if (host != null && host !in PASSPORT_HOSTS) {
+        candidates.add("https://$host/")
+    }
+    return candidates.toList()
+}
+
+private fun String.addTrailingSlash(): String = if (endsWith("/")) this else "$this/"
+
+private fun hostOf(url: String): String? {
+    return runCatching { URL(url).host }
+        .getOrNull()
+        ?.lowercase(Locale.ROOT)
+        ?.takeIf { it.isNotEmptyOrBlank() }
 }
 
 /**
@@ -450,9 +525,20 @@ fun tryGetFullServerUrl(baseUrl: String): String {
  * <br>原项目版权归原作者所有，遵循GPL v3协议
  */
 private fun addHttpsIfMissing(baseUrl: String): String {
-    return if (!baseUrl.startsWith("http://", true) && !baseUrl.startsWith("https://")) {
-        "https://$baseUrl".lowercase(Locale.ROOT)
-    } else baseUrl.lowercase(Locale.ROOT)
+    val trimmed = baseUrl.trim()
+    val withScheme = if (!trimmed.startsWith("http://", true) && !trimmed.startsWith("https://", true)) {
+        "https://$trimmed"
+    } else trimmed
+
+    //主机名不区分大小写，路径区分：只把 scheme://host 这一段转成小写
+    val schemeEnd = withScheme.indexOf("://")
+    if (schemeEnd < 0) return withScheme
+    val pathStart = withScheme.indexOf('/', schemeEnd + 3)
+    return if (pathStart < 0) {
+        withScheme.lowercase(Locale.ROOT)
+    } else {
+        withScheme.substring(0, pathStart).lowercase(Locale.ROOT) + withScheme.substring(pathStart)
+    }
 }
 
 /**
