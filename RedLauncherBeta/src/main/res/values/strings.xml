@@ -521,7 +521,7 @@
     <string name="account_delete_title">Delete Account</string>
     <string name="account_delete_message">Are you sure you want to delete account %s from the launcher?</string>
     <string name="account_microsoft_fetch_device_code">Get Device Code</string>
-    <string name="account_microsoft_coped_device_code">Device code copied: %s. Please complete verification in your browser shortly.</string>
+    <string name="account_microsoft_coped_device_code">Device code copied: %s. It also stays on screen while you sign in.</string>
     <string name="account_microsoft_get_token">Polling in progress, attempting to obtain token; device code: %s</string>
     <string name="account_microsoft_getting_access_token">Requesting access token</string>
     <string name="account_microsoft_getting_xbl_token">Requesting XBL token</string>
@@ -530,6 +530,8 @@
     <string name="account_microsoft_verify_game_ownership">Checking game ownership</string>
     <string name="account_microsoft_getting_player_profile">Fetching profile</string>
     <string name="account_microsoft_exit_by_user">You left the webpage, so the Microsoft login process has been canceled for you.</string>
+    <string name="account_microsoft_device_code_title">Enter this code on the Microsoft page</string>
+    <string name="account_microsoft_device_code_hint">Sign in below, then tap \"Accept\". The launcher keeps waiting and adds the account automatically. If the page shows an error, tap reload, or open it in your browser \u2014 the account is still added automatically once you accept.</string>
     <string name="account_advanced">Advanced Settings</string>
     <string name="account_local_create_account">Create Offline Account</string>
     <string name="account_local_uuid" translatable="false">UUID</string>
