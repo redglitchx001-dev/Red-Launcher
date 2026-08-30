@@ -1,5 +1,5 @@
 /*
- * Red Launcher Beta
+ * Red Launcher
  * Copyright (C) 2026 redglitchx001-dev and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -244,8 +244,8 @@ class DiscordGateway(
                 put("token", token)
                 put("properties", JSONObject().apply {
                     put("\$os", "android")
-                    put("\$browser", "Red Launcher Beta")
-                    put("\$device", "Red Launcher Beta")
+                    put("\$browser", "Red Launcher")
+                    put("\$device", "Red Launcher")
                 })
                 put("intents", 0)
                 put("presence", JSONObject().apply {

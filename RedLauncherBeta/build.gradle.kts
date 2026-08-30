@@ -234,6 +234,7 @@ dependencies {
     implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.webkit)
+    implementation(libs.androidx.security.crypto)
     implementation(libs.documentfile)
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)

@@ -130,11 +130,12 @@ object LaunchGame {
                 task.updateMessage(androidText(R.string.game_vulkan_check_title))
                 checkVulkanCapabilities(version, waitForVulkanChecker)
 
-                // Update Discord Rich Presence with server + account + skin face
+                // Update Discord Rich Presence with server + account (the skin
+                // face small image is fetched from an external avatar URL)
                 DiscordManager.onGameStart(
                     serverIp = version.getServerIp(),
                     accountName = account.username,
-                    skinFile = account.getSkinFile()
+                    accountUuid = account.profileId
                 )
 
                 runGame(context, version, account)

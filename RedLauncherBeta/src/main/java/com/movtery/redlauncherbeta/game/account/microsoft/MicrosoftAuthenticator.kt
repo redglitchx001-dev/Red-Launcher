@@ -92,10 +92,26 @@ const val XSTS_AUTH_URL = "https://xsts.auth.xboxlive.com"
 const val MINECRAFT_SERVICES_URL = "https://api.minecraftservices.com"
 
 /**
+ * Thrown when the launcher was built without an OAuth client id, so the login
+ * flow fails fast with a user-readable message instead of letting Microsoft
+ * answer the request with a generic
+ * "400 Bad Request — The server could not understand the request".
+ */
+class OAuthClientIdMissingException : RuntimeException()
+
+/** Checks that an OAuth client id is present, otherwise throws [OAuthClientIdMissingException]. */
+private fun requireOAuthClientId() {
+    if (BuildKeys.OAUTH_CLIENT_ID.isBlank()) {
+        throw OAuthClientIdMissingException()
+    }
+}
+
+/**
  * 从 Microsoft 身份验证终端节点获取设备代码响应
  * 设备代码用于在单独的设备或浏览器上授权用户
  */
 suspend fun fetchDeviceCodeResponse(context: CoroutineContext): DeviceCodeResponse = coroutineScope {
+    requireOAuthClientId()
     withRetry {
         submitForm(
             url = "$MICROSOFT_AUTH_URL$TENANT/oauth2/v2.0/devicecode",
@@ -248,6 +264,7 @@ private suspend fun refreshAccessToken(
     context: CoroutineContext
 ): Pair<String, String> {
     update(AsyncStatus.GETTING_ACCESS_TOKEN)
+    requireOAuthClientId()
 
     return withRetry {
         val response = submitForm<JsonObject>(
