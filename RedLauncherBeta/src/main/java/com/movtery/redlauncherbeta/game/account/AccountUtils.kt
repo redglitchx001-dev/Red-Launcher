@@ -33,6 +33,7 @@ import com.movtery.zalithlauncher.game.account.microsoft.AsyncStatus
 import com.movtery.zalithlauncher.game.account.microsoft.AuthType
 import com.movtery.zalithlauncher.game.account.microsoft.MinecraftProfileException
 import com.movtery.zalithlauncher.game.account.microsoft.NotPurchasedMinecraftException
+import com.movtery.zalithlauncher.game.account.microsoft.OAuthClientIdMissingException
 import com.movtery.zalithlauncher.game.account.microsoft.XboxLoginException
 import com.movtery.zalithlauncher.game.account.microsoft.fetchDeviceCodeResponse
 import com.movtery.zalithlauncher.game.account.microsoft.getTokenResponse
@@ -157,6 +158,7 @@ fun microsoftLogin(
                 Logger.error(TAG, "Microsoft account login failed", th)
             }
             when (th) {
+                is OAuthClientIdMissingException -> androidText(R.string.account_oauth_client_id_missing)
                 is HttpRequestTimeoutException -> androidText(R.string.account_logging_time_out)
                 is NotPurchasedMinecraftException -> toLocal()
                 is MinecraftProfileException -> th.toLocal()

@@ -1,5 +1,5 @@
 /*
- * Red Launcher Beta
+ * Red Launcher
  * Copyright (C) 2026 redglitchx001-dev and contributors
  *
  * This program is free software: you can redistribute it and/or modify
@@ -36,11 +36,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.movtery.redlauncherbeta.feature.discord.DiscordManager
+import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.AnimatedColumn
 import com.movtery.zalithlauncher.ui.components.OwnOutlinedTextField
@@ -66,6 +68,7 @@ fun DiscordSettingsScreen(
     var enabled by remember { mutableStateOf(DiscordManager.isEnabled()) }
     var tokenInput by remember { mutableStateOf(DiscordManager.getToken()) }
     var tokenVisible by remember { mutableStateOf(false) }
+    var useUrlAssets by remember { mutableStateOf(DiscordManager.useUrlAssets()) }
 
     BaseScreen(
         Triple(key, mainScreenKey, false),
@@ -92,8 +95,20 @@ fun DiscordSettingsScreen(
                             enabled = it
                             DiscordManager.setEnabled(it)
                         },
-                        title = "Discord Rich Presence",
-                        summary = "Show on Discord what you are doing: skin face, server, players and play time"
+                        title = stringResource(R.string.discord_rpc_title),
+                        summary = stringResource(R.string.discord_rpc_summary)
+                    )
+
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        checked = useUrlAssets,
+                        onCheckedChange = {
+                            useUrlAssets = it
+                            DiscordManager.setUseUrlAssets(it)
+                        },
+                        title = stringResource(R.string.discord_rpc_url_assets_title),
+                        summary = stringResource(R.string.discord_rpc_url_assets_summary)
                     )
 
                     SettingsCard(
@@ -101,34 +116,46 @@ fun DiscordSettingsScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = "Discord Token",
+                            text = stringResource(R.string.discord_rpc_token_title),
                             style = MaterialTheme.typography.titleSmall
                         )
                         Text(
-                            text = "Paste your Discord user token below. Red Launcher uses it only " +
-                                "to update your Rich Presence (the same way CustomRPC does). " +
-                                "Never share it with anyone.",
+                            text = stringResource(R.string.discord_rpc_token_summary),
                             style = MaterialTheme.typography.labelSmall,
                             modifier = Modifier.padding(top = 4.dp)
                         )
                         OwnOutlinedTextField(
+                            // The value is masked with • while not visible, so
+                            // the raw token is never shown by default nor
+                            // written back to the field while masked.
                             value = if (tokenVisible) tokenInput else "•".repeat(tokenInput.length),
                             onValueChange = { if (tokenVisible) tokenInput = it },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(top = 12.dp),
-                            label = { Text("Token") },
+                            label = { Text(stringResource(R.string.discord_rpc_token_label)) },
                             supportingText = {
-                                Text(if (tokenInput.isBlank()) "Required to connect" else connectionState)
+                                // connectionState never contains the token itself
+                                Text(
+                                    if (tokenInput.isBlank()) {
+                                        stringResource(R.string.discord_rpc_token_required)
+                                    } else {
+                                        connectionState
+                                    }
+                                )
                             },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(
                                 imeAction = ImeAction.Done,
-                                keyboardType = KeyboardType.Ascii
+                                keyboardType = KeyboardType.Password
                             ),
                             trailingIcon = {
                                 Text(
-                                    text = if (tokenVisible) "HIDE" else "SHOW",
+                                    text = if (tokenVisible) {
+                                        stringResource(R.string.discord_rpc_hide)
+                                    } else {
+                                        stringResource(R.string.discord_rpc_show)
+                                    },
                                     style = MaterialTheme.typography.labelSmall,
                                     modifier = Modifier
                                         .padding(horizontal = 8.dp)
@@ -146,7 +173,7 @@ fun DiscordSettingsScreen(
                                 .fillMaxWidth()
                                 .padding(top = 8.dp)
                         ) {
-                            Text("Save & Connect")
+                            Text(stringResource(R.string.discord_rpc_save_connect))
                         }
                         Spacer(modifier = Modifier.height(6.dp))
                         Button(
@@ -155,7 +182,7 @@ fun DiscordSettingsScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                         ) {
-                            Text("Disconnect")
+                            Text(stringResource(R.string.discord_rpc_disconnect))
                         }
                     }
 
@@ -164,16 +191,11 @@ fun DiscordSettingsScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = "How to get your Discord token",
+                            text = stringResource(R.string.discord_rpc_howto_title),
                             style = MaterialTheme.typography.titleSmall
                         )
                         Text(
-                            text = "1. Open Discord on PC\n" +
-                                "2. Settings → Advanced → enable Developer Mode\n" +
-                                "3. Right-click your avatar → Copy ID (that's not it)\n" +
-                                "4. Open browser DevTools (F12) → Network → any request → " +
-                                "Request Headers → copy the \"Authorization\" value\n\n" +
-                                "Alternative: use any \"token sniffer\" website while logged in.",
+                            text = stringResource(R.string.discord_rpc_howto_body),
                             style = MaterialTheme.typography.labelSmall,
                             modifier = Modifier.padding(top = 4.dp)
                         )

@@ -686,6 +686,11 @@ fun MicrosoftLoginTipDialog(
                 },
                 style = MaterialTheme.typography.bodyMedium
             )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.account_supporting_microsoft_oauth_note),
+                style = MaterialTheme.typography.bodyMedium
+            )
         },
         confirmText = stringResource(R.string.account_login),
         onConfirm = onConfirm,

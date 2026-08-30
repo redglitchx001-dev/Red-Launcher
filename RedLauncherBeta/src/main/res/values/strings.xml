@@ -463,6 +463,7 @@
     <string name="account_logging_blocked_ip">The current IP address has been blocked from logging in.</string>
     <string name="account_logging_profile_not_exists">Please create a Minecraft player profile first, then try logging in again!</string>
     <string name="account_logging_not_purchased_minecraft">Minecraft ownership not verified. Please purchase it from Minecraft\'s official website.</string>
+    <string name="account_oauth_client_id_missing">OAuth client id not configured — set the OAUTH_CLIENT_ID secret in the repository (GitHub → Settings → Secrets and variables → Actions). Offline and auth server accounts still work.</string>
     <string name="account_type_microsoft">Microsoft</string>
     <string name="account_type_local">Offline</string>
     <string name="account_add_new_server">Add Auth Server</string>
@@ -516,6 +517,7 @@
     <string name="account_supporting_microsoft_tip_hint_t6">5. When the webpage displays "All done!", the account will be added automatically. Please wait a moment.</string>
     <string name="account_supporting_microsoft_tip_hint_t7">If the webpage shows an "Error" message or the account fails to be added, please retry the above steps.\n</string>
     <string name="account_supporting_microsoft_tip_hint_t8">Tip: If your network connection is poor, the webpage may load slowly or fail to open. Try using a network proxy and retry.</string>
+    <string name="account_supporting_microsoft_oauth_note">Note: this build must be configured with an OAuth client id to log in to Microsoft (see the \"Microsoft Login Setup\" section of the project README). Without it, Microsoft login fails with a clear error — offline and auth server accounts keep working.</string>
     <string name="account_delete_title">Delete Account</string>
     <string name="account_delete_message">Are you sure you want to delete account %s from the launcher?</string>
     <string name="account_microsoft_fetch_device_code">Get Device Code</string>
@@ -858,6 +860,21 @@
     <string name="settings_tab_gamepad">Gamepad</string>
     <string name="settings_tab_launcher">Launcher</string>
     <string name="settings_tab_discord">Discord</string>
+    <!-- Discord Rich Presence -->
+    <string name="discord_rpc_title">Discord Rich Presence</string>
+    <string name="discord_rpc_summary">Show on Discord what you are doing: skin face, server, players and play time</string>
+    <string name="discord_rpc_url_assets_title">Use URL assets</string>
+    <string name="discord_rpc_url_assets_summary">Fetch the logo and skin face from public URLs. Recommended until the logo is uploaded to your Discord application (see docs/discord in the repository).</string>
+    <string name="discord_rpc_token_title">Discord Token</string>
+    <string name="discord_rpc_token_summary">Paste your Discord user token below. Red Launcher uses it only to update your Rich Presence. It is stored encrypted on this device, never uploaded anywhere else, and never shared with anyone.</string>
+    <string name="discord_rpc_token_label">Token</string>
+    <string name="discord_rpc_token_required">Required to connect</string>
+    <string name="discord_rpc_show">SHOW</string>
+    <string name="discord_rpc_hide">HIDE</string>
+    <string name="discord_rpc_save_connect">Save &amp; Connect</string>
+    <string name="discord_rpc_disconnect">Disconnect</string>
+    <string name="discord_rpc_howto_title">How to get your Discord token (Bluecord)</string>
+    <string name="discord_rpc_howto_body">1. Search \"Bluecord\" on Google and open the official site, then install the Bluecord APK.\n2. Open the app and log in with your account.\n3. Go to your account, tap \"Bluecord\'s Mods\", then tap \"Account Switcher\".\n4. Tap \"Copy current token\", WAIT 5 SECONDS, then copy it again.\n5. Do NOT copy the JSON — paste only the token value into the field above.\n\nSafety: your token gives FULL access to your Discord account (messages, email, 2FA settings, servers). Never paste it into any website and never share it with anyone. Red Launcher stores it only on this device, uses it only to keep your presence updated, and never uploads it anywhere else. You can clear it any time with \"Disconnect\" + empty the field. Using a user token for presence is against Discord\'s terms and can get your account banned — use at your own risk.</string>
     <string name="settings_tab_java_manage">Java</string>
     <string name="settings_tab_control_manage">Controls</string>
     <string name="settings_tab_info_about">About</string>
@@ -1228,12 +1245,9 @@
     <!-- About -->
     <string name="about_launcher_title">About Launcher</string>
     <string name="about_launcher_version">Launcher Version: %s</string>
-    <string name="about_launcher_copyright">© 2026 RedGlitchX — Red Launcher Beta</string>
-    <string name="about_launcher_author_movtery_title">MovTery</string>
-    <string name="about_launcher_author_movtery_text">Author of %s</string>
-    <string name="about_launcher_author_movtery_upstream">Upstream author of ZalithLauncher2 (GPL-3.0)</string>
+    <string name="about_launcher_copyright">© 2026 RedGlitchX — Red Launcher</string>
     <string name="about_launcher_author_redglitchx_title">RedGlitchX</string>
-    <string name="about_launcher_author_redglitchx_text">Maintainer of %s (unofficial fork)</string>
+    <string name="about_launcher_author_redglitchx_text">Creator &amp; maintainer · © 2026 Red Launcher</string>
     <string name="about_launcher_gpl_notice">This program comes with ABSOLUTELY NO WARRANTY. It is free software, and you may redistribute it under GPLv3, with upstream copyright notices preserved.</string>
     <string name="about_launcher_project_link">Project Link</string>
     <string name="about_sponsor">Sponsorship Support</string>

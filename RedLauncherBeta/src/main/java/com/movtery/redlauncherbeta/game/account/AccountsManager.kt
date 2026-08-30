@@ -214,10 +214,10 @@ object AccountsManager {
     private fun refreshCurrentAccountState() {
         val currentAccount = getCurrentAccount()
         val isOffline = checkLimit()
-        _currentAccountFlow.update {
-            //若处于非正版状态，不允许使用账号
-            if (isOffline) null else currentAccount
-        }
+        // The saved account is always usable: offline (local) and auth server
+        // accounts must work everywhere, not only inside the mainland China
+        // region — otherwise the launcher would refuse to start the game.
+        _currentAccountFlow.update { currentAccount }
         _isOffline.update { isOffline }
     }
 

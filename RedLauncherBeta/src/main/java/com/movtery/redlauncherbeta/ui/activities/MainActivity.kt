@@ -515,9 +515,20 @@ class MainActivity : BaseAppCompatActivity() {
         PluginLoader.loadAllPlugins(this, true)
     }
 
+    override fun onStop() {
+        super.onStop()
+        // Stop the Discord presence as soon as the launcher leaves the screen,
+        // so "In the main menu" does not stay on the user's profile after the
+        // app is backgrounded. While a game is running, DiscordManager keeps
+        // the game presence (see DiscordManager.onAppBackground).
+        DiscordManager.onAppBackground()
+    }
+
     override fun onDestroy() {
         fmEventRegistrar?.stop()
         fmEventRegistrar = null
+        // Safety net: make sure no presence is left behind on destruction.
+        DiscordManager.onAppBackground()
         super.onDestroy()
     }
 
@@ -843,7 +854,7 @@ class MainActivity : BaseAppCompatActivity() {
     override fun onResume() {
         super.onResume()
         ControlManager.checkDefaultAndRefresh(this@MainActivity)
-        // Show "In Meniul Principal" on Discord while browsing the launcher
+        // Show "In the main menu" on Discord while browsing the launcher
         DiscordManager.onAppForeground()
     }
 
