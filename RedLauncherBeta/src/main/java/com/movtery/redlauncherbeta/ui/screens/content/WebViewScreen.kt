@@ -33,7 +33,6 @@ import android.webkit.WebViewClient
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -177,7 +176,8 @@ fun WebViewScreen(
                         MarqueeText(
                             modifier = Modifier
                                 .weight(1f)
-                                .clickable(enabled = urlAvailable) {
+                                //登录进行中时锁定在应用内浏览器，不允许跳到外部浏览器
+                                .clickable(enabled = urlAvailable && deviceCode == null) {
                                     openExternal(webUrl)
                                 },
                             text = webUrl,
@@ -195,15 +195,12 @@ fun WebViewScreen(
                     }
                 }
 
-                //设备码常驻显示，并提供“用系统浏览器打开”的兜底入口
+                //设备码常驻显示，并提供复制入口
                 deviceCode?.let { code ->
                     DeviceCodeBanner(
                         deviceCode = code,
                         onCopyCode = {
                             copyText(COPY_LABEL_DEVICE_CODE, code.userCode, context)
-                        },
-                        onOpenExternally = {
-                            openExternal(code.verificationUrl)
                         }
                     )
                 }
@@ -250,7 +247,9 @@ private fun WebView.configureForLogin(
         databaseEnabled = true
         //允许 window.open() 在同一个 WebView 中打开，避免弹出窗口把会话带到新窗口里
         javaScriptCanOpenWindowsAutomatically = true
-        supportMultipleWindows = false
+        //注意：WebSettings 的 getter 叫 supportMultipleWindows()，没有 get 前缀，
+        //所以 Kotlin 不会合成同名属性，必须显式调用 setter，否则编译不过
+        setSupportMultipleWindows(false)
         //走正常缓存策略：LOAD_NO_CACHE 会让登录跳转链反复重新请求，容易丢掉中间态
         cacheMode = WebSettings.LOAD_DEFAULT
         mixedContentMode = WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
@@ -336,14 +335,13 @@ private fun releaseWebView(webView: WebView) {
 }
 
 /**
- * 设备码提示条：把待验证的码大字显示出来，并提供复制 / 用系统浏览器打开的入口。
- * 登录一旦在别处（或稍后）被批准，轮询会自动完成并添加账号。
+ * 设备码提示条：把待验证的码大字显示出来，并提供复制按钮。
+ * 登录仅在应用内 WebView 完成；一旦在页面中被批准，轮询会自动完成并添加账号。
  */
 @Composable
 private fun DeviceCodeBanner(
     deviceCode: MicrosoftDeviceCode,
-    onCopyCode: () -> Unit,
-    onOpenExternally: () -> Unit
+    onCopyCode: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -381,25 +379,12 @@ private fun DeviceCodeBanner(
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconTextButton(
-                onClick = onCopyCode,
-                painter = painterResource(R.drawable.ic_content_copy_filled),
-                text = stringResource(R.string.generic_copy),
-                style = MaterialTheme.typography.labelMedium,
-                iconSize = 18.dp
-            )
-
-            IconTextButton(
-                onClick = onOpenExternally,
-                painter = painterResource(R.drawable.ic_public),
-                text = stringResource(R.string.generic_open_link),
-                style = MaterialTheme.typography.labelMedium,
-                iconSize = 18.dp
-            )
-        }
+        IconTextButton(
+            onClick = onCopyCode,
+            painter = painterResource(R.drawable.ic_content_copy_filled),
+            text = stringResource(R.string.generic_copy),
+            style = MaterialTheme.typography.labelMedium,
+            iconSize = 18.dp
+        )
     }
 }
