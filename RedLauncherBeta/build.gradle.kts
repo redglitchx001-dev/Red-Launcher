@@ -22,7 +22,15 @@ val launcherUrl = project.findProperty("url_home") as? String ?: error("The \"ur
 val launcherVersionCode = (project.findProperty("launcher_version_code") as? String)?.toIntOrNull() ?: error("The \"launcher_version_code\" property is not set as an integer in gradle.properties.")
 val launcherVersionName = project.findProperty("launcher_version_name") as? String ?: error("The \"launcher_version_name\" property is not set in gradle.properties.")
 
-val defaultOAuthClientID = project.findProperty("oauth_client_id") as? String
+// Client ID-ul public oficial al Minecraft Launcher („00000000402b5328") NU este un secret:
+// este identificatorul public folosit de Mojang/Microsoft pentru autentificarea Minecraft și de
+// launcher-ele comunitare (inclusiv PojavLauncher, care îl include direct în APK). Îl folosim ca
+// default ca login-ul Microsoft să funcționeze out-of-the-box, exact ca în PojavLauncher.
+// Un ID propriu înregistrat în Entra poate suprascrie: env OAUTH_CLIENT_ID (via Actions secret)
+// > .oauth_client_id.txt > proprietatea de gradle oauth_client_id.
+val defaultOAuthClientID = (project.findProperty("oauth_client_id") as? String)
+    ?.takeIf { it.isNotBlank() }
+    ?: "00000000402b5328"
 val defaultStorePassword = project.findProperty("default_store_password") as? String ?: error("The \"default_store_password\" property is not set in gradle.properties.")
 val defaultKeyPassword = project.findProperty("default_key_password") as? String ?: error("The \"default_key_password\" property is not set in gradle.properties.")
 val defaultCurseForgeApiKey = project.findProperty("curseforge_api_key") as? String
@@ -30,10 +38,13 @@ val defaultCurseForgeApiKey = project.findProperty("curseforge_api_key") as? Str
 val projectArch: String = System.getProperty("arch", "all")
 
 fun getKeyFromLocal(envKey: String, fileName: String? = null, default: String? = null): String {
-    val key = System.getenv(envKey)
+    // GitHub Actions definește variabilele de env chiar și când secretul lipsește (valoare goală),
+    // deci un `System.getenv()` simplu ar credea că e configurat și ar îngropa orice fallback.
+    // Tratăm șirurile goale ca „lipsă" → fallback-ul (defaultOAuthClientID) chiar se aplică.
+    val key = System.getenv(envKey)?.takeIf { it.isNotBlank() }
     return key ?: fileName?.let {
         val file = File(rootDir, fileName)
-        if (file.canRead() && file.isFile) file.readText() else null
+        if (file.canRead() && file.isFile) file.readText().takeIf { it.isNotBlank() } else null
     } ?: default ?: run {
         logger.warn("BUILD: $envKey not set; related features may throw exceptions.")
         ""
