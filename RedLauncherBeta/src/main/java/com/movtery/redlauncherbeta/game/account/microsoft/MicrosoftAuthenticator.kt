@@ -76,7 +76,13 @@ import kotlin.time.Duration.Companion.milliseconds
 
 private const val TAG = "MicrosoftAuth"
 
-private val SCOPES = listOf("XboxLive.signin", "offline_access", "openid", "profile", "email")
+/**
+ * Scopul legacy folosit de Minecraft Launcher-ul oficial împreună cu client ID-ul public
+ * „00000000402b5328". Scope-urile v2 („XboxLive.signin offline_access openid profile email")
+ * sunt respinse de endpoint cu 400 „The server could not understand the request", deci pentru
+ * login-ul care funcționează out-of-the-box cu client ID-ul oficial trebuie folosit MBI_SSL.
+ */
+private const val OAUTH_SCOPE = "service::user.auth.xboxlive.com::MBI_SSL"
 private const val TENANT = "/consumers"
 
 /**
@@ -117,7 +123,7 @@ suspend fun fetchDeviceCodeResponse(context: CoroutineContext): DeviceCodeRespon
             url = "$MICROSOFT_AUTH_URL$TENANT/oauth2/v2.0/devicecode",
             parameters = Parameters.build {
                 append("client_id", BuildKeys.OAUTH_CLIENT_ID)
-                append("scope", SCOPES.joinToString(" "))
+                append("scope", OAUTH_SCOPE)
             },
             context = context
         )
@@ -157,7 +163,6 @@ suspend fun getTokenResponse(
                     append("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
                     append("device_code", codeResponse.deviceCode)
                     append("client_id", BuildKeys.OAUTH_CLIENT_ID)
-                    append("tenant", TENANT)
                 },
                 context = context
             )
