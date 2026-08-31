@@ -1,0 +1,388 @@
+# ============================================================================
+#  stable-sk-core.sk
+#  A complete, dependency-free Skript plugin in a single file.
+#
+#  Target : Paper 1.21.11 + Skript 2.16.x   (no addons required)
+#  Install: plugins/Skript/scripts/stable-sk-core.sk   ->   /sk reload all
+#
+#  Every effect, condition, event and expression used here is written against
+#  the syntax registered in Skript 2.16.1, cross-checked with the official
+#  documentation at https://docs.skriptlang.org (v2.16.1).
+#
+#  NOTE ON GUIs: `format gui slot` does NOT exist in modern Skript - it belongs
+#  to the skript-gui addon and to Skript 2.4-era tutorials. A menu here is built
+#  from three pieces of core Skript: `chest inventory with N rows named`,
+#  `set slot N of <inventory>`, and the `on inventory click` event.
+# ============================================================================
+
+
+# ----------------------------------------------------------------------------
+#  OPTIONS - the only block you normally need to edit
+# ----------------------------------------------------------------------------
+
+options:
+    # Shown in front of every message this script sends.
+    prefix: &8[&cRed&8]&7
+
+    # Permission nodes.
+    perm-admin: redplugin.admin
+    perm-notify: redplugin.notify
+
+    # How many /home entries a player may keep.
+    max-homes: 5
+
+    # How long a player must wait between /kit claims.
+    kit-cooldown: 1 hour
+
+    # Title of the /menu screen.
+    menu-title: &8&lRed &7Menu
+
+# ----------------------------------------------------------------------------
+#  VARIABLES - persistent defaults, applied when the script loads
+# ----------------------------------------------------------------------------
+
+variables:
+    {redplugin::version} = "1.0.0"
+    {redplugin::spawn} = none
+    {redplugin::guard} = none
+
+
+# ============================================================================
+#  SECTION 1 - CORE EVENTS
+# ============================================================================
+
+on join:
+    set the join message to "{@prefix}&e%player% &7joined the game."
+    message "{@prefix}&6Welcome, &f%player%&6!" to player
+    message "&7Type &f/menu &7to open the main menu." to player
+
+on quit:
+    set the quit message to "{@prefix}&e%player% &7left the game."
+    delete {redplugin::menu::%uuid of player%}
+
+on first join:
+    message "{@prefix}&dYou are new here. Basic commands: &f/spawn&7, &f/home&7, &f/kit" to player
+
+on respawn:
+    wait 1 tick
+    if {redplugin::spawn} is set:
+        teleport player to {redplugin::spawn}
+
+on death of player:
+    add 1 to {redplugin::deaths::%uuid of player%}
+    broadcast "{@prefix}&c%player% &7died."
+
+
+# ============================================================================
+#  SECTION 2 - SPAWN
+# ============================================================================
+
+command /setspawn:
+    description: Sets the server spawn to your current location.
+    permission: {@perm-admin}
+    permission message: {@prefix}&cOnly admins can set the spawn.
+    trigger:
+        set {redplugin::spawn} to the location of player
+        message "{@prefix}&aSpawn set to &f%x-coordinate of player%, %y-coordinate of player%, %z-coordinate of player%&a." to player
+
+command /spawn:
+    description: Teleports you to the server spawn.
+    trigger:
+        if {redplugin::spawn} is not set:
+            message "{@prefix}&cThe spawn has not been set yet. An admin must run &f/setspawn&c." to player
+            stop
+        teleport player to {redplugin::spawn}
+        message "{@prefix}&aTeleported to spawn." to player
+
+
+# ============================================================================
+#  SECTION 3 - HOMES
+# ============================================================================
+
+command /home [<text>]:
+    aliases: h, homes
+    description: Lists your homes, or explains the subcommands.
+    permission: redplugin.home
+    permission message: {@prefix}&cYou need &fredplugin.home&c for that.
+    trigger:
+        set {_id} to the uuid of player
+        if arg-1 is not set:
+            if size of {redplugin::homes::%{_id}%::*} is 0:
+                message "{@prefix}&cYou have no homes yet. Use &f/home set <name>&c." to player
+                stop
+            message "{@prefix}&6Your homes:&7" to player
+            loop {redplugin::homes::%{_id}%::*}:
+                message "  &8- &f%loop-index% &8(%x-coordinate of loop-value%, %y-coordinate of loop-value%, %z-coordinate of loop-value%)" to player
+            stop
+        message "{@prefix}&cUsage: &f/home &7(list), &f/home set <name>&7, &f/home del <name>&7, &f/home go <name>" to player
+
+command /homeset <text>:
+    description: Saves your current location as a home.
+    permission: redplugin.home
+    permission message: {@prefix}&cYou need &fredplugin.home&c for that.
+    trigger:
+        set {_id} to the uuid of player
+        if size of {redplugin::homes::%{_id}%::*} is greater than or equal to {@max-homes}:
+            message "{@prefix}&cYou reached the limit of &f{@max-homes} &chomes. Delete one with &f/home del <name>&c." to player
+            stop
+        set {redplugin::homes::%{_id}%::%arg-1%} to the location of player
+        message "{@prefix}&aHome &f%arg-1% &asaved." to player
+
+command /homedel <text>:
+    description: Deletes one of your homes.
+    permission: redplugin.home
+    permission message: {@prefix}&cYou need &fredplugin.home&c for that.
+    trigger:
+        set {_id} to the uuid of player
+        if {redplugin::homes::%{_id}%::%arg-1%} is not set:
+            message "{@prefix}&cThere is no home named &f%arg-1%&c." to player
+            stop
+        delete {redplugin::homes::%{_id}%::%arg-1%}
+        message "{@prefix}&aHome &f%arg-1% &adeleted." to player
+
+command /homego <text>:
+    description: Teleports you to one of your homes.
+    permission: redplugin.home
+    permission message: {@prefix}&cYou need &fredplugin.home&c for that.
+    trigger:
+        set {_id} to the uuid of player
+        if {redplugin::homes::%{_id}%::%arg-1%} is not set:
+            message "{@prefix}&cThere is no home named &f%arg-1%&c." to player
+            stop
+        teleport player to {redplugin::homes::%{_id}%::%arg-1%}
+        message "{@prefix}&aTeleported to &f%arg-1%&a." to player
+
+
+# ============================================================================
+#  SECTION 4 - WARPS
+# ============================================================================
+
+command /setwarp <text>:
+    description: Creates a public warp at your location.
+    permission: {@perm-admin}
+    permission message: {@prefix}&cOnly admins can create warps.
+    trigger:
+        set {redplugin::warps::%arg-1%} to the location of player
+        message "{@prefix}&aWarp &f%arg-1% &acreated." to player
+
+command /delwarp <text>:
+    description: Deletes a public warp.
+    permission: {@perm-admin}
+    permission message: {@prefix}&cOnly admins can delete warps.
+    trigger:
+        if {redplugin::warps::%arg-1%} is not set:
+            message "{@prefix}&cThere is no warp named &f%arg-1%&c." to player
+            stop
+        delete {redplugin::warps::%arg-1%}
+        message "{@prefix}&aWarp &f%arg-1% &adeleted." to player
+
+command /warp [<text>]:
+    description: Lists warps, or teleports you to one.
+    permission: redplugin.warp
+    permission message: {@prefix}&cYou need &fredplugin.warp&c for that.
+    trigger:
+        if arg-1 is not set:
+            if size of {redplugin::warps::*} is 0:
+                message "{@prefix}&cThere are no warps yet." to player
+                stop
+            message "{@prefix}&6Available warps:&7" to player
+            loop {redplugin::warps::*}:
+                message "  &8- &f%loop-index%" to player
+            stop
+        if {redplugin::warps::%arg-1%} is not set:
+            message "{@prefix}&cThere is no warp named &f%arg-1%&c." to player
+            stop
+        teleport player to {redplugin::warps::%arg-1%}
+        message "{@prefix}&aTeleported to warp &f%arg-1%&a." to player
+
+
+# ============================================================================
+#  SECTION 5 - HEAL AND FEED
+# ============================================================================
+
+command /heal [<player>]:
+    description: Heals and feeds you, or another player.
+    permission: {@perm-admin}
+    permission message: {@prefix}&cYou are not allowed to heal players.
+    trigger:
+        if arg-1 is set:
+            set {_target} to arg-1
+        else:
+            set {_target} to player
+        heal {_target}
+        feed {_target}
+        message "{@prefix}&aYou were healed." to {_target}
+
+command /feed [<player>]:
+    description: Feeds you, or another player.
+    permission: {@perm-admin}
+    permission message: {@prefix}&cYou are not allowed to feed players.
+    trigger:
+        if arg-1 is set:
+            feed arg-1
+        else:
+            feed player
+        message "{@prefix}&aYou were fed." to player
+
+
+# ============================================================================
+#  SECTION 6 - TELEPORT REQUESTS
+# ============================================================================
+
+command /tpa <player>:
+    description: Asks a player for permission to teleport to them.
+    trigger:
+        if arg-1 is player:
+            message "{@prefix}&cYou cannot teleport to yourself." to player
+            stop
+        set {redplugin::tpa::%uuid of arg-1%} to player
+        message "{@prefix}&aRequest sent to &f%arg-1%&a." to player
+        message "{@prefix}&f%player% &7wants to teleport to you. &f/tpaccept &7or &f/tpdeny" to arg-1
+
+command /tpaccept:
+    aliases: tpyes
+    description: Accepts a pending teleport request.
+    trigger:
+        if {redplugin::tpa::%uuid of player%} is not set:
+            message "{@prefix}&cYou have no pending request." to player
+            stop
+        set {_requester} to {redplugin::tpa::%uuid of player%}
+        delete {redplugin::tpa::%uuid of player%}
+        teleport {_requester} to the location of player
+        message "{@prefix}&aRequest accepted." to player
+        message "{@prefix}&aYour request was accepted." to {_requester}
+
+command /tpdeny:
+    aliases: tpno
+    description: Refuses a pending teleport request.
+    trigger:
+        if {redplugin::tpa::%uuid of player%} is not set:
+            message "{@prefix}&cYou have no pending request." to player
+            stop
+        set {_requester} to {redplugin::tpa::%uuid of player%}
+        delete {redplugin::tpa::%uuid of player%}
+        message "{@prefix}&cRequest refused." to player
+        message "{@prefix}&cYour request was refused." to {_requester}
+
+
+# ============================================================================
+#  SECTION 7 - STAFF AND MESSAGING
+# ============================================================================
+
+command /broadcast <text>:
+    aliases: bc
+    description: Sends an announcement to every player.
+    permission: {@perm-admin}
+    permission message: {@prefix}&cYou are not allowed to broadcast.
+    trigger:
+        broadcast "{@prefix}&6[Announcement] &f%arg-1%"
+
+command /msg <player> <text>:
+    aliases: tell, w
+    description: Sends a private message.
+    trigger:
+        message "{@prefix}&7[you -> &f%arg-1%&7] &f%arg-2%" to player
+        message "{@prefix}&7[&f%player% &7-> you] &f%arg-2%" to arg-1
+
+
+# ============================================================================
+#  SECTION 8 - STARTER KIT
+#  The cooldown is handled by Skript itself, so it needs no bookkeeping and
+#  survives restarts. Inside `cooldown message:` the valid placeholders are
+#  %elapsed time% and %remaining time% - there is no %remaining command cooldown%.
+# ============================================================================
+
+command /kit:
+    description: Claims the starter kit.
+    permission: redplugin.kit
+    permission message: {@prefix}&cYou need &fredplugin.kit&c for that.
+    cooldown: {@kit-cooldown}
+    cooldown message: {@prefix}&cYou last claimed a kit %elapsed time% ago. The next one is available in %remaining time%.
+    cooldown storage: {redplugin::cooldown::%player's uuid%}
+    trigger:
+        give 1 diamond sword to player
+        give 1 diamond pickaxe to player
+        give 1 shield to player
+        give 32 cooked beef to player
+        give 16 oak planks to player
+        give 8 golden apples to player
+        message "{@prefix}&aStarter kit received. The next one is available in &f{@kit-cooldown}&a." to player
+
+
+# ============================================================================
+#  SECTION 9 - MENU (chest GUI, core Skript only)
+# ============================================================================
+
+command /menu:
+    aliases: gui
+    description: Opens the main menu.
+    trigger:
+        set {_gui} to a new chest inventory with 3 rows named "{@menu-title}"
+        set slot 11 of {_gui} to 1 compass named "&b&lSpawn"
+        set slot 13 of {_gui} to 1 golden apple named "&6&lHeal and feed"
+        set slot 15 of {_gui} to 1 chest named "&a&lYour homes"
+        set {redplugin::menu::%uuid of player%} to 1
+        open {_gui} to player
+        message "{@prefix}&7Menu opened. Pick an option." to player
+
+on inventory click:
+    if {redplugin::menu::%uuid of player%} is set:
+        cancel event
+        if clicked slot is 11:
+            close the inventory view of player
+            delete {redplugin::menu::%uuid of player%}
+            if {redplugin::spawn} is not set:
+                message "{@prefix}&cThe spawn has not been set yet." to player
+                stop
+            teleport player to {redplugin::spawn}
+            message "{@prefix}&aTeleported to spawn." to player
+        if clicked slot is 13:
+            close the inventory view of player
+            delete {redplugin::menu::%uuid of player%}
+            heal player
+            feed player
+            message "{@prefix}&aYou were healed and fed." to player
+        if clicked slot is 15:
+            close the inventory view of player
+            delete {redplugin::menu::%uuid of player%}
+            execute the command "/home" by player
+
+
+# ============================================================================
+#  SECTION 10 - BUILD PROTECTION
+#  A lightweight alternative to WorldGuard for spawn and lobby areas: while it
+#  is on, only players with the admin permission may break or place blocks.
+# ============================================================================
+
+command /protect [<text>]:
+    description: Shows, enables or disables build protection.
+    permission: {@perm-admin}
+    permission message: {@prefix}&cOnly admins can change build protection.
+    trigger:
+        if arg-1 is not set:
+            if {redplugin::guard} is set:
+                message "{@prefix}&6Build protection is &aON&6." to player
+            else:
+                message "{@prefix}&6Build protection is &cOFF&6." to player
+            stop
+        if arg-1 is "on":
+            set {redplugin::guard} to 1
+            broadcast "{@prefix}&cBuild protection is now &aON&c."
+            stop
+        if arg-1 is "off":
+            delete {redplugin::guard}
+            broadcast "{@prefix}&cBuild protection is now &cOFF&c."
+            stop
+        message "{@prefix}&cUsage: &f/protect on &7or &f/protect off&c." to player
+
+on break:
+    if {redplugin::guard} is set:
+        if player does not have permission "{@perm-admin}":
+            cancel event
+            message "{@prefix}&cThis area is protected. You cannot break blocks here." to player
+
+on place:
+    if {redplugin::guard} is set:
+        if player does not have permission "{@perm-admin}":
+            cancel event
+            message "{@prefix}&cThis area is protected. You cannot place blocks here." to player
