@@ -367,11 +367,11 @@ object DiscordManager {
             put("name", "Minecraft")
             put("type", 0)
             put("application_id", APPLICATION_ID)
-            put("details", "Red Launcher")
-            put("state", if (!serverIp.isNullOrEmpty()) "In multiplayer: $serverIp" else "Singleplayer")
+            put("details", "DEVI MERVE")
+            put("state", if (!serverIp.isNullOrEmpty()) "Server: MERGE" else "Singleplayer")
             put("assets", JSONObject().apply {
                 put("large_image", largeImage())
-                put("large_text", "Red Launcher")
+                put("large_text", "DEVI MERVE")
                 accountUuid?.takeIf { it.isNotBlank() }?.let { uuid ->
                     put("small_image", SKIN_FACE_URL_TEMPLATE.replace("{uuid}", uuid))
                     put("small_text", accountName)
@@ -401,13 +401,13 @@ object DiscordManager {
         if (!force && System.currentTimeMillis() - lastMenuPresenceSent < MENU_PRESENCE_MIN_INTERVAL_MS) return
 
         val activity = JSONObject().apply {
-            put("name", "Red Launcher")
+            put("name", "DEVI MERVE")
             put("type", 0)
             put("application_id", APPLICATION_ID)
-            put("details", "In the main menu")
+            put("details", "Server: MERGE")
             put("assets", JSONObject().apply {
                 put("large_image", largeImage())
-                put("large_text", "Red Launcher")
+                put("large_text", "DEVI MERVE")
             })
         }
         gw.updatePresence("online", JSONArray().put(activity))
