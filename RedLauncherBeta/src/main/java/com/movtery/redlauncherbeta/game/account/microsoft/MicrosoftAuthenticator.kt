@@ -78,7 +78,7 @@ private const val TAG = "MicrosoftAuth"
 
 /**
  * Scopul legacy folosit de Minecraft Launcher-ul oficial împreună cu client ID-ul public
- * „00000000402b5328". Scope-urile v2 („XboxLive.signin offline_access openid profile email")
+ * „00000000402b5328". Scope-urile v2 ("XboxLive.signin offline_access openid profile email")
  * sunt respinse de endpoint cu 400 „The server could not understand the request", deci pentru
  * login-ul care funcționează out-of-the-box cu client ID-ul oficial trebuie folosit MBI_SSL.
  */
