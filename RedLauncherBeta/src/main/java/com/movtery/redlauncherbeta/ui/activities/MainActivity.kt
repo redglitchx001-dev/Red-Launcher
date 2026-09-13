@@ -518,7 +518,7 @@ class MainActivity : BaseAppCompatActivity() {
     override fun onStop() {
         super.onStop()
         // Stop the Discord presence as soon as the launcher leaves the screen,
-        // so "In the main menu" does not stay on the user's profile after the
+        // so the menu presence does not stay on the user's profile after the
         // app is backgrounded. While a game is running, DiscordManager keeps
         // the game presence (see DiscordManager.onAppBackground).
         DiscordManager.onAppBackground()
@@ -854,7 +854,7 @@ class MainActivity : BaseAppCompatActivity() {
     override fun onResume() {
         super.onResume()
         ControlManager.checkDefaultAndRefresh(this@MainActivity)
-        // Show "In the main menu" on Discord while browsing the launcher
+        // Show the menu presence on Discord while browsing the launcher
         DiscordManager.onAppForeground()
     }
 

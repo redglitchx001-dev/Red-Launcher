@@ -23,6 +23,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
@@ -75,6 +76,12 @@ class SplashActivity : BaseAppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        Toast.makeText(
+            this,
+            "${getString(R.string.premium_accounts_coming_soon)} | ${getString(R.string.upgrade_check_on_start_message)}",
+            Toast.LENGTH_LONG
+        ).show()
 
         initUnpackItems()
         checkAllTask()

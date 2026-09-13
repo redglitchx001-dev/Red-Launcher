@@ -270,7 +270,7 @@ object DiscordManager {
         } else {
             // The launcher is not on screen (e.g. the game just closed and the
             // app stays in the background) — drop the presence instead of
-            // leaving "In the main menu" on the user's profile.
+            // leaving the menu presence on the user's profile.
             clearPresenceAndDisconnect()
         }
     }
@@ -367,11 +367,11 @@ object DiscordManager {
             put("name", "Minecraft")
             put("type", 0)
             put("application_id", APPLICATION_ID)
-            put("details", "DEVI MERVE")
+            put("details", "Red Launcher")
             put("state", if (!serverIp.isNullOrEmpty()) "Server: MERGE" else "Singleplayer")
             put("assets", JSONObject().apply {
                 put("large_image", largeImage())
-                put("large_text", "DEVI MERVE")
+                put("large_text", "Red Launcher")
                 accountUuid?.takeIf { it.isNotBlank() }?.let { uuid ->
                     put("small_image", SKIN_FACE_URL_TEMPLATE.replace("{uuid}", uuid))
                     put("small_text", accountName)
@@ -401,13 +401,13 @@ object DiscordManager {
         if (!force && System.currentTimeMillis() - lastMenuPresenceSent < MENU_PRESENCE_MIN_INTERVAL_MS) return
 
         val activity = JSONObject().apply {
-            put("name", "DEVI MERVE")
+            put("name", "Red Launcher")
             put("type", 0)
             put("application_id", APPLICATION_ID)
             put("details", "Server: MERGE")
             put("assets", JSONObject().apply {
                 put("large_image", largeImage())
-                put("large_text", "DEVI MERVE")
+                put("large_text", "Red Launcher")
             })
         }
         gw.updatePresence("online", JSONArray().put(activity))

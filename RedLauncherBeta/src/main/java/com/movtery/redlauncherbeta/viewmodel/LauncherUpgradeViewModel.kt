@@ -41,7 +41,6 @@ import androidx.lifecycle.viewModelScope
 import com.movtery.zalithlauncher.BuildConfig
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.path.GLOBAL_CLIENT
-import com.movtery.zalithlauncher.path.GLOBAL_JSON
 import com.movtery.zalithlauncher.path.URL_PROJECT_INFO
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.components.MarqueeText
@@ -49,13 +48,11 @@ import com.movtery.zalithlauncher.ui.components.SimpleListDialog
 import com.movtery.zalithlauncher.ui.screens.content.elements.DisabledAlpha
 import com.movtery.zalithlauncher.ui.upgrade.UpgradeDialog
 import com.movtery.zalithlauncher.ui.upgrade.UpgradeFilesDialog
-import com.movtery.zalithlauncher.upgrade.GithubContentApi
 import com.movtery.zalithlauncher.upgrade.RemoteData
 import com.movtery.zalithlauncher.upgrade.TooFrequentOperationException
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.network.safeBodyAsJson
 import com.movtery.zalithlauncher.utils.network.withRetry
-import com.movtery.zalithlauncher.utils.string.decodeBase64
 import io.ktor.client.request.get
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -82,7 +79,7 @@ sealed interface LauncherUpgradeOperation {
  */
 private const val LATEST_VERSION = "latest_version_md.json"
 private const val LATEST_API_URL = "$URL_PROJECT_INFO/$LATEST_VERSION"
-private const val LATEST_API_CHINESE_URL = "https://repo.miawa.cn/zalith-info/v2/$LATEST_VERSION"
+private const val LATEST_API_CHINESE_URL = "$URL_PROJECT_INFO/$LATEST_VERSION"
 
 /**
  * 用于记录启动器更新 ViewModel
@@ -193,11 +190,9 @@ class LauncherUpgradeViewModel: ViewModel() {
         return withContext(Dispatchers.IO) {
             runCatching {
                 withRetry(logTag = "LauncherUpgrade", maxRetries = 2) {
-                    //获取最新的启动器信息
-                    val api = GLOBAL_CLIENT.get(LATEST_API_URL).safeBodyAsJson<GithubContentApi>()
-                    //需要Base64解密
-                    val contentString = decodeBase64(api.content)
-                    GLOBAL_JSON.decodeFromString(RemoteData.serializer(), contentString)
+                    // The Red Launcher update endpoint serves the version
+                    // document directly as JSON (not GitHub's Base64 content API).
+                    GLOBAL_CLIENT.get(LATEST_API_URL).safeBodyAsJson<RemoteData>()
                 }
             }.getOrElse { e ->
                 if (Locale.getDefault().language == "zh") {
